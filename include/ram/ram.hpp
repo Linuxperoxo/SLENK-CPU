@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 7/10/2024                     |
+ *    |  SRC MOD   : 8/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -54,7 +54,6 @@
 #define __RAM_HPP__
 
 #include <cstdint>
-#include <sys/mman.h>
 
 constexpr uint32_t MEMORY_SIZE { 1024 * 64 }; 
 
@@ -74,6 +73,8 @@ private:
 public:
 
   explicit RAM() noexcept;
+
+  ~RAM() noexcept;
 };
 
 #endif

@@ -51,6 +51,7 @@
 #include <cstdint>
 
 #include "../cpu/cpu.hpp"
+#include "../ram/ram.hpp"
 
 typedef uint16_t ADDRS_TYPE;
 typedef uint8_t  DATA_TYPE;
@@ -75,6 +76,7 @@ private:
   */
 
   CPU* _CPU;
+  RAM* _RAM;
 
 public:
 

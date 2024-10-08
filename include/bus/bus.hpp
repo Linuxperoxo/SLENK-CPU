@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 7/10/2024                     |
+ *    |  SRC MOD   : 8/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -68,7 +68,6 @@ private:
 
 private:
 
-
   /*
     
     Dispositivos conectados ao barramento
@@ -80,12 +79,11 @@ private:
 
 public:
 
-  explicit BUS() noexcept;
+  explicit BUS(CPU*&) noexcept;
 
   ~BUS() noexcept;
 
 public:
-
   
   /*
    *  
@@ -109,9 +107,7 @@ public:
    *
    */
 
-
   DATA_TYPE read(ADDRS_TYPE _addrs_to_read) noexcept;
-
 
   /*
    *
@@ -125,8 +121,7 @@ public:
    *
    */
 
-
-  NONE      write(ADDRS_TYPE _addrs_to_write, DATA_TYPE _data_to_write);
+  NONE      write(ADDRS_TYPE _addrs_to_write, DATA_TYPE _data_to_write); 
 };
 
 #endif

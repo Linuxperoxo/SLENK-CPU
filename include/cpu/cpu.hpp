@@ -16,7 +16,7 @@
 #ifndef __CPU_HPP__
 #define __CPU_HPP__
 
-#include "../bus/bus.hpp"
+class BUS;
 
 typedef void NONE;
 
@@ -35,26 +35,29 @@ private:
 
 public:
 
-  
-  /*
-    
-    Construtor e destrutor
-    
-  */
-
-
   explicit CPU() noexcept;
 
   ~CPU() noexcept;
 
 public:
   
+  /*
+   *
+   * Typedef
+   *
+   * NONE -> void
+   *
+   */
 
   /*
-    
-    Funções membros
-    
-  */
+   *
+   * @info   : Essa função é responsável por linkar uma class BUS a CPU
+   *
+   * @return : Void
+   *
+   * @param  : Um ponteiro para linkar o barramento a CPU
+   * 
+   */
 
   NONE linkbus(BUS* _bus) noexcept;
 

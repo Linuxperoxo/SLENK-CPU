@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 7/10/2024                     | 
+ *    |  SRC MOD   : 8/10/2024                     | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -31,13 +31,20 @@ private:
 
 private:
 
-  BUS* _BUS;
+  BUS* _BUS { nullptr };
 
+
+private:
+
+  struct
+  {
+    void (CPU::*_instruct)();
+  };
 public:
 
-  explicit CPU() noexcept;
+  explicit CPU() noexcept = default;
 
-  ~CPU() noexcept;
+  ~CPU() noexcept = default;
 
 public:
   
@@ -59,8 +66,8 @@ public:
    * 
    */
 
-  NONE linkbus(BUS* _bus) noexcept;
-
+  NONE linkbus(BUS*) noexcept;
 };
 
 #endif
+

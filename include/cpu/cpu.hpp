@@ -44,6 +44,7 @@
  *
  * REGISTRADORES: pequenas áreas de memória de alta velocidade dentro 
  * da CPU que armazenam dados temporários usados durante a execução das instruções.
+ *
  */
 
 #ifndef __CPU_HPP__

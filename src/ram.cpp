@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 8/10/2024                     |
+ *    |  SRC MOD   : 9/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -38,3 +38,4 @@ RAM::~RAM() noexcept
 {
   munmap(_MEMORY, MEMORY_SIZE);
 }
+

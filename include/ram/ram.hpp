@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 8/10/2024                     |
+ *    |  SRC MOD   : 9/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -57,6 +57,10 @@
 
 constexpr uint32_t MEMORY_SIZE { 1024 * 64 }; 
 
+typedef uint16_t ADDRS_BITS_SIZE;
+typedef uint8_t  DATA_BITS_SIZE;
+typedef void     NONE;
+
 class RAM
 {
 private:
@@ -75,6 +79,30 @@ public:
   explicit RAM() noexcept;
 
   ~RAM() noexcept;
+
+/*
+ *
+ * @info   : Essa função lê um dado em um bloco de memória
+ *
+ * @return : uint8_t 
+ *
+ * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+ *
+ */
+
+  inline DATA_BITS_SIZE read(ADDRS_BITS_SIZE _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
+
+/*
+ *
+ * @info   : Essa função escreve um dado em um bloco de memória
+ *
+ * @return : void
+ *
+ * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+ *
+ */
+
+  inline NONE           write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
 };
 
 #endif

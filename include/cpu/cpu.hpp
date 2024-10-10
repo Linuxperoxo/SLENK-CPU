@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 8/10/2024                     | 
+ *    |  SRC MOD   : 9/10/2024                     | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -54,7 +54,9 @@
 
 class BUS;
 
-typedef void NONE;
+typedef uint16_t ADDRS_BITS_SIZE;
+typedef uint8_t  DATA_BITS_SIZE;
+typedef void     NONE;
 
 class CPU
 {
@@ -71,9 +73,21 @@ private:
 
 private:
 
-  
+  /*
+   *
+   * A      : Usado para armazenar o resultado de operações aritmética
+   * X      :
+   * Y      : 
+   * STKPTR : Armazenar o endereço para o top da pilha 
+   * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador
+   *
+   */
 
-private:
+  uint8_t _A       { 0x00 };
+  uint8_t _X       { 0x00 };
+  uint8_t _Y       { 0x00 };
+  uint16_t _STKPTR { 0x0000 };
+  uint16_t _PC     { 0x0000 };
 
   /*
   * REGISTRADOR DE STATUS:
@@ -117,7 +131,7 @@ private:
 
 public:
 
-  explicit CPU() noexcept = default;
+  explicit CPU() noexcept;
 
   ~CPU() noexcept = default;
 
@@ -127,7 +141,9 @@ public:
    *
    * Typedef
    *
-   * NONE -> void
+   * ADDRS_BITS_SIZE -> uint16_t
+   * DATA_BITS_SIZE  -> uint8_t
+   * NONE            -> void
    *
    */
 
@@ -135,13 +151,51 @@ public:
    *
    * @info   : Essa função é responsável por linkar uma class BUS a CPU
    *
-   * @return : Void
+   * @return : void
    *
    * @param  : Um ponteiro para linkar o barramento a CPU
    * 
    */
 
   NONE linkbus(BUS*) noexcept;
+  
+  /*
+   *
+   * @info   : Essa função escreve um dado em um bloco de memória
+   *
+   * @return : void
+   *
+   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+   *
+  */
+
+  NONE write(ADDRS_BITS_SIZE, DATA_BITS_SIZE) noexcept;
+  
+  /*
+   *
+   * @info   : Essa função lê um bloco de memória e escreve no registrador X
+   *
+   * @return : void
+   *
+   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+   *
+  */
+
+  NONE read(ADDRS_BITS_SIZE) noexcept;
+  
+  /*
+   *
+   * @info   : Essa função apenas define o primeiro bloco de memória que o registrador
+   *          PC vai procurar pela primeira instrução, e configura o ponteiro da stack 
+   *          para o início
+   *
+   * @return : void
+   *
+   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+   *
+  */
+
+  NONE reset() noexcept;
 };
 
 #endif

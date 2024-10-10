@@ -6,54 +6,31 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.cpp                       |
- *    |  SRC MOD   : 8/10/2024                     |
+ *    |  SRC MOD   : 9/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
  *
  */
 
-#include <cstdlib>
-#include <iostream>
-
 #include "../include/bus/bus.hpp"
 
-BUS::BUS(CPU*& _cpu) noexcept
-  : _CPU(nullptr),
-    _RAM(nullptr)
+BUS::BUS(CPU* _cpu, RAM* _ram) noexcept
+  : _CPU(_cpu),
+    _RAM(_ram)
 {
-  _CPU = static_cast<CPU*>(std::malloc(sizeof(CPU)));
-  _RAM = static_cast<RAM*>(std::malloc(sizeof(RAM)));
-
-  if(_RAM == nullptr || _CPU == nullptr)
+  if(_CPU != nullptr)
   {
-    std::cout << "Error to create system bus\n" << '\n';
-    exit(EXIT_FAILURE);
+    _CPU->linkbus(this);
   }
-
-  new(_CPU) CPU();
-  new(_RAM) RAM();
-
-  _CPU->linkbus(this);
-
-  _cpu = _CPU;
-}
-
-BUS::~BUS() noexcept
-{
-  _CPU->~CPU();
-  _RAM->~RAM();
-
-  std::free(_CPU);
-  std::free(_RAM);
 }
 
 /*
  *
  *  Typedef
  *
- * DATA_TYPE  -> uint8_t
- * ADDRS_TYPE -> uint16_t
+ * DATA_BITS_SIZE  -> uint8_t
+ * ADDRS_BITS_SIZE -> uint16_t
  * NONE       -> void
  *
  */
@@ -70,9 +47,9 @@ BUS::~BUS() noexcept
  *
  */
 
-DATA_TYPE BUS::read(ADDRS_TYPE _addrs_to_read) noexcept
+DATA_BITS_SIZE BUS::read(ADDRS_BITS_SIZE _addrs_to_read) noexcept
 {
-
+  return _RAM->read(_addrs_to_read);
 }
 
 /*
@@ -87,7 +64,8 @@ DATA_TYPE BUS::read(ADDRS_TYPE _addrs_to_read) noexcept
  *
  */
 
-NONE BUS::write(ADDRS_TYPE _addrs_to_write, DATA_TYPE _data_to_write) noexcept
+NONE BUS::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept
 {
-  
+  _RAM->write(_addrs_to_write, _data_to_write); 
 }
+

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 8/10/2024                     |
+ *    |  SRC MOD   : 9/10/2024                     |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -53,8 +53,8 @@
 #include "../cpu/cpu.hpp"
 #include "../ram/ram.hpp"
 
-typedef uint16_t ADDRS_TYPE;
-typedef uint8_t  DATA_TYPE;
+typedef uint16_t ADDRS_BITS_SIZE;
+typedef uint8_t  DATA_BITS_SIZE;
 typedef void     NONE;
 
 class BUS
@@ -79,19 +79,19 @@ private:
 
 public:
 
-  explicit BUS(CPU*&) noexcept;
+  explicit BUS(CPU* _cpu, RAM* _ram) noexcept;
 
-  ~BUS() noexcept;
-
+  ~BUS() noexcept = default;
+ 
 public:
   
   /*
    *  
    *  Typedef
    *
-   * DATA_TYPE  -> uint8_t
-   * ADDRS_TYPE -> uint16_t
-   * NONE       -> void
+   * ADDRS_BITS_SIZE -> uint16_t
+   * DATA_BITS_SIZE  -> uint8_t
+   * NONE            -> void
    *
    */
 
@@ -107,11 +107,11 @@ public:
    *
    */
 
-  DATA_TYPE read(ADDRS_TYPE _addrs_to_read) noexcept;
+  DATA_BITS_SIZE read(ADDRS_BITS_SIZE _addrs_to_read) noexcept;
 
   /*
    *
-   *  @info   : Função que vai escrever um dado em um determinado block na
+   *  @info   : Função que vai escrever um dado em um determinado bloco na
    *            memória RAM
    *
    *  @return : Void
@@ -121,7 +121,7 @@ public:
    *
    */
 
-  NONE      write(ADDRS_TYPE _addrs_to_write, DATA_TYPE _data_to_write); 
+  NONE          write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept; 
 };
 
 #endif

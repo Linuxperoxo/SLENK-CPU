@@ -149,7 +149,7 @@ private:
   
   struct INSTRUCTION
   {
-    std::string _name;
+    std::string     _name;
     NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
     DATA_BITS_SIZE  _bytes_to_read; // Quantos bytes ler após o endereço do opcode
     DATA_BITS_SIZE  _have_out; // Tem saída?

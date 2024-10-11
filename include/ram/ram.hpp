@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 9/10/2024                     |
+ *    |  SRC MOD   : 11/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -57,6 +57,8 @@
 
 constexpr uint32_t MEMORY_SIZE { 1024 * 64 }; 
 
+class BUS;
+
 typedef uint16_t ADDRS_BITS_SIZE;
 typedef uint8_t  DATA_BITS_SIZE;
 typedef void     NONE;
@@ -79,6 +81,8 @@ public:
   explicit RAM() noexcept;
 
   ~RAM() noexcept;
+
+private:
 
 /*
  *
@@ -103,6 +107,8 @@ public:
  */
 
   inline NONE           write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
+
+  friend class BUS;
 };
 
 #endif

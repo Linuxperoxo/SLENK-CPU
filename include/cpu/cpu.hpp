@@ -51,7 +51,7 @@
 #define __CPU_HPP__
 
 #include <cstdint>
-#include <iostream>
+#include <string>
 
 #define INSTRUCTIONS_NUM 12
 
@@ -79,19 +79,21 @@ private:
   /*
    *
    * A      : Usado para armazenar o resultado de operações aritmética;
-   * X      : Armazenar valores para aritmética, para instruções de 2 bytes, sempre vamos usar ele; 
-   * Y      : Armazenar valores para aritmética;
+   * X      : Principalmente usado para armazenar valores para instruções aritmética, para instruções de 2 bytes, sempre vamos usar ele. Também armazena dados de leitura da memória;
+   * Y      : Mesma coisa do registrador X;
+   * F      : Armazena 
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
    *
    */
 
-  uint8_t _A       { 0x00 };
-  uint8_t _X       { 0x00 };
-  uint8_t _Y       { 0x00 };
+  DATA_BITS_SIZE  _A      { 0x00 };
+  DATA_BITS_SIZE  _X      { 0x00 };
+  DATA_BITS_SIZE  _Y      { 0x00 };
 
-  uint16_t _STKPTR { 0x0000 };
-  uint16_t _PC     { 0x0000 };
+  ADDRS_BITS_SIZE _F      { 0x0000 };
+  ADDRS_BITS_SIZE _STKPTR { 0x0000 };
+  ADDRS_BITS_SIZE _PC     { 0x0000 };
 
   /*
   * REGISTRADOR DE STATUS:
@@ -147,10 +149,11 @@ private:
   
   struct INSTRUCTION
   {
-    void     (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
-    uint8_t  _bytes_to_read; // Quantos bytes ler após o endereço do opcode
-    uint8_t  _have_out; // Tem saída?
-    uint8_t* _out; // Onde vamos armazenar a saída
+    std::string _name;
+    NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
+    DATA_BITS_SIZE  _bytes_to_read; // Quantos bytes ler após o endereço do opcode
+    DATA_BITS_SIZE  _have_out; // Tem saída?
+    DATA_BITS_SIZE* _out; // Onde vamos armazenar a saída
   };
 
   /*
@@ -193,13 +196,14 @@ private:
 
   INSTRUCTION _opcode[INSTRUCTIONS_NUM]
   {
-    {&CPU::ADD, 0, 1, &_A}, {&CPU::ADD, 1, 1, &_A}, {&CPU::ADD, 2, 1, &_A},    
-    {&CPU::SUB, 0, 1, &_A}, {&CPU::SUB, 1, 1, &_A}, {&CPU::SUB, 2, 1, &_A}
+    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 128, 0, nullptr},
+    {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},    
+    {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
   };
 
 public:
 
-  explicit CPU() noexcept;
+  explicit CPU(BUS*) noexcept;
 
   ~CPU() noexcept = default;
 
@@ -215,8 +219,11 @@ private:
    *
    */
 
-  inline void ADD(CPU::INSTRUCTION*) noexcept { std::cout << "ADD OPERATION\n"; }  
-  inline void SUB(CPU::INSTRUCTION*) noexcept { std::cout << "SUB OPERATION\n"; };  
+  NONE RST(CPU::INSTRUCTION*) noexcept;
+  NONE ADD(CPU::INSTRUCTION*) noexcept;  
+  NONE SUB(CPU::INSTRUCTION*) noexcept;
+  NONE JMP(CPU::INSTRUCTION*) noexcept;
+  NONE PRT(CPU::INSTRUCTION*) noexcept;
 
 public:
 
@@ -255,19 +262,8 @@ public:
   */
 
   NONE read(ADDRS_BITS_SIZE) noexcept;
-  
-  /*
-   *
-   * @info   : Essa função apenas define o primeiro bloco de memória que o registrador
-   *          PC vai procurar pela primeira instrução, e configura o ponteiro da stack
-   *
-   * @return : void
-   *
-   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
-   *
-  */
 
-  NONE reset() noexcept;
+  NONE run() noexcept;
 };
 
 #endif

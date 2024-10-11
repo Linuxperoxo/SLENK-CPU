@@ -55,6 +55,8 @@
 
 #define INSTRUCTIONS_NUM 12
 
+constexpr uint32_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
+
 class BUS;
 
 typedef uint16_t ADDRS_BITS_SIZE;
@@ -81,11 +83,13 @@ private:
    * A      : Usado para armazenar o resultado de operações aritmética;
    * X      : Principalmente usado para armazenar valores para instruções aritmética, para instruções de 2 bytes, sempre vamos usar ele. Também armazena dados de leitura da memória;
    * Y      : Mesma coisa do registrador X;
-   * F      : Armazena 
+   * F      : Armazena endereços de memória, usado pela instrução JMP 
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
    *
    */
+
+public:
 
   DATA_BITS_SIZE  _A      { 0x00 };
   DATA_BITS_SIZE  _X      { 0x00 };
@@ -223,11 +227,17 @@ private:
    *
    */
 
-  NONE RST(CPU::INSTRUCTION*) noexcept;
-  NONE ADD(CPU::INSTRUCTION*) noexcept;  
-  NONE SUB(CPU::INSTRUCTION*) noexcept;
-  NONE JMP(CPU::INSTRUCTION*) noexcept;
-  NONE PRT(CPU::INSTRUCTION*) noexcept;
+  /*
+   * 
+   * Instruções: 
+   *
+   */
+
+  NONE RST(CPU::INSTRUCTION*) noexcept; // Reseta o processador, modificando o PC e STKPTR
+  NONE ADD(CPU::INSTRUCTION*) noexcept; // Soma
+  NONE SUB(CPU::INSTRUCTION*) noexcept; // Subtração
+  NONE JMP(CPU::INSTRUCTION*) noexcept; // Pula PC para um endereço de memória 
+  NONE PRT(CPU::INSTRUCTION*) noexcept; // Exibe algo letras na tela
 
 public:
 

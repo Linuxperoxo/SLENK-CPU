@@ -201,14 +201,6 @@ private:
   INSTRUCTION _opcode[INSTRUCTIONS_NUM]
   {
     {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 128, 0, nullptr},
-    {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},
-    {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
-  };
-
-
-  INSTRUCTION _opcode[INSTRUCTIONS_NUM]
-  {
-    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 128, 0, nullptr},
     {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},    
     {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
   };

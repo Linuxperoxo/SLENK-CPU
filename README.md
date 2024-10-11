@@ -40,6 +40,15 @@ Para compilar e executar o projeto, siga os passos abaixo:
     ./make.sh run
     ```
 
+## Documentação
+
+Como documentação você pode ler os arquivos .hpp em include/.
+
+Ordem de leitura recomendada:
+    ->include/ram/ram.hpp;
+    ->include/bus/bus.hpp;
+    ->include/cpu/cpu.hpp;
+
 ## Observações
 
 O projeto ainda está em desenvolvimento, e várias funcionalidades e lógicas ainda não foram implementadas. Agradeço qualquer feedback ou contribuição!

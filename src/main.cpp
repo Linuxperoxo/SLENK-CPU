@@ -46,20 +46,37 @@ int main()
   {
     static_cast<CPU*>(std::malloc(sizeof(CPU)))
   };
+
+  if(_cpu == nullptr)
+  {
+    std::cerr << "Error to alloc memory for CPU class\n";
+    exit(EXIT_FAILURE);
+  }
   
   RAM* _ram
   {
     static_cast<RAM*>(std::malloc(sizeof(RAM)))
   };
 
+  if(_ram == nullptr)
+  {
+    std::free(_cpu);
+    
+    std::cout << "Error to alloc memory for RAM class\n";
+    exit(EXIT_FAILURE);
+  }
+
   BUS* _bus
   {
     static_cast<BUS*>(std::malloc(sizeof(BUS)))  
   };
 
-  if(_cpu == nullptr || _ram == nullptr || _bus == nullptr)
+  if(_bus == nullptr)
   {
-    std::cout << "Error to alloc main structs CPU, RAM or BUS\n";
+    std::free(_cpu);
+    std::free(_ram);
+
+    std::cout << "Error to alloc memory for BUS class\n";
     exit(EXIT_FAILURE);
   }
 
@@ -83,10 +100,11 @@ int main()
   _cpu->write(ROM_INIT + 13, '!');
   _cpu->write(ROM_INIT + 14, '\n');
 
+  //_cpu->write(ROM_INIT, 0x0004);
+  //_cpu->write(ROM_INIT + 1, 0x0003);
+
   //_cpu->_F = ROM_INIT;
   //_cpu->write(ROM_INIT, 0x0001);
-
-  std::cout << CLOCK_FREQUENCY << '\n';
 
   /*
    *
@@ -94,14 +112,17 @@ int main()
    *
   */
 
-  while(_cpu->_I != 1)
+  while(true)
   {
-    if(_cpu->_B == 1)
+    if(_cpu->_I == 0)
     {
-      break;
+      if(_cpu->_B == 1)
+      {
+        break;
+      }
     }
     _cpu->run();
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz    
   }
 
   _cpu->~CPU();

@@ -83,7 +83,8 @@ private:
    * A      : Usado para armazenar o resultado de operações aritmética;
    * X      : Principalmente usado para armazenar valores para instruções aritmética, para instruções de 2 bytes, sempre vamos usar ele. Também armazena dados de leitura da memória;
    * Y      : Mesma coisa do registrador X;
-   * F      : Armazena endereços de memória, usado pela instrução JMP 
+   * F      : Armazena endereços de memória, usado pela instrução JMP;
+   * H      : Armazena dados da stack, usado pela instrução POP, e joga dados para a stack usado pela instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
    *
@@ -94,6 +95,7 @@ public:
   DATA_BITS_SIZE  _A      { 0x00 };
   DATA_BITS_SIZE  _X      { 0x00 };
   DATA_BITS_SIZE  _Y      { 0x00 };
+  DATA_BITS_SIZE  _H      { 0x00 };
 
   ADDRS_BITS_SIZE _F      { 0x0000 };
   ADDRS_BITS_SIZE _STKPTR { 0x0000 };
@@ -204,10 +206,21 @@ public:
 
   INSTRUCTION _opcode[INSTRUCTIONS_NUM]
   {
-    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 128, 0, nullptr},
+    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 127, 0, nullptr},
+    {"POP", &CPU::POP, 0, 0, nullptr}, {"PUH", &CPU::PUH, 0, 0, nullptr},
     {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},    
     {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
   };
+
+  /*
+   *
+   * OPCODES:
+   *  RST : 0x00   JMP : 0x01   PRT: 0x02
+   *  POP : 0x03   PUH : 0x04   
+   *  ADD : 0x05   ADD : 0x06   ADD : 0x07
+   *  SUB : 0x08   SUB : 0x09   SUB : 0x0A
+   *
+   */
 
 public:
 
@@ -237,7 +250,9 @@ private:
   NONE ADD(CPU::INSTRUCTION*) noexcept; // Soma
   NONE SUB(CPU::INSTRUCTION*) noexcept; // Subtração
   NONE JMP(CPU::INSTRUCTION*) noexcept; // Pula PC para um endereço de memória 
-  NONE PRT(CPU::INSTRUCTION*) noexcept; // Exibe algo letras na tela
+  NONE PRT(CPU::INSTRUCTION*) noexcept; // Exibe caracteres na tela. MÁXIMO DE 127 Bytes de leitura
+  NONE POP(CPU::INSTRUCTION*) noexcept; // Desempilha elemento da stack 
+  NONE PUH(CPU::INSTRUCTION*) noexcept; // Empilha elemento na stack
 
 public:
 
@@ -276,6 +291,16 @@ public:
   */
 
   NONE read(ADDRS_BITS_SIZE) noexcept;
+
+  /*
+   *
+   * @info   : Executa a instrução que está no contador de programas PC
+   *
+   * @return : void
+   *
+   * @param  : void
+   *
+   */
 
   NONE run() noexcept;
 };

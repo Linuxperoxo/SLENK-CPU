@@ -31,7 +31,7 @@ RAM::RAM() noexcept
     exit(EXIT_FAILURE);
   }
 
-  std::memset(_MEMORY, 0, MEMORY_SIZE);
+  std::memset(_MEMORY, 0x00, MEMORY_SIZE);
 }
 
 RAM::~RAM() noexcept

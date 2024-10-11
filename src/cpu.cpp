@@ -27,6 +27,7 @@
 #define FIRST_INSTRUCTION_OPCODE 0x00
 #define SEC_INSTRUCTION_OPCODE 0x01
 #define ROM_INIT 0x8000
+#define ZERO 0x00
 
 constexpr uint16_t CLOCK_FREC {1000000000 / 1790000 };
 
@@ -60,45 +61,15 @@ CPU::CPU(BUS* _bus_to_link) noexcept
  *
  */
 
-/*
- *
- * @info   : Essa função é responsável por linkar uma class BUS a CPU
- *
- * @return : void
- *
- * @param  : Um ponteiro para linkar o barramento a CPU
- *
- */
-
 NONE CPU::linkbus(BUS* _bus) noexcept
 {
   if(_BUS == nullptr) { _BUS = _bus; }
 }
 
-/*
- *
- * @info   : Essa função escreve um dado em um bloco de memória
- *
- * @return : void
- *
- * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
- *
- */
-
 NONE CPU::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept
 {
   _BUS->write(_addrs_to_write, _data_to_write);
 }
-
-/*
- *
- * @info   : Essa função lê um bloco de memória e escreve no registrador X
- *
- * @return : void
- *
- * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
- *
- */
 
 NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
 {
@@ -107,21 +78,17 @@ NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
 
 NONE CPU::run() noexcept
 {
-  /*
-   *
-   * O registrador _X vai armazenar o dado
-   *
-   */
-
-  read(_PC);
+  read(_PC); // Lendo a memória que o PC está apontando, essa  memória será armazenada no registrador _X
 
   std::cout << "INSTRUCTION : \"" << _opcode[_X]._name << "\" "
-            << "SIZE : \"0x" << _opcode[_X]._bytes_to_read + 1 << "\" "
-            << "PC : \"0x" << std::hex << _PC << "\"" << '\n'; 
+            << "SIZE : \"" << _opcode[_X]._bytes_to_read + 1 << " Bytes\" "
+            << "PC ADDRS: \"0x" << std::hex << _PC << "\" "
+            << "STACK ADDRS: \"0x" << std::hex << _STKPTR << "\"" 
+            << '\n';
 
   std::cout << std::dec;
 
-  (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]);
+  (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]); // Executando a instrução
 }
 
 NONE CPU::RST(CPU::INSTRUCTION*) noexcept
@@ -156,8 +123,6 @@ NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
 {
   _A = 1;
 
-  std::cout << _X;
-
   while(_A < _instruct->_bytes_to_read)
   {  
     read(_PC + _A);    
@@ -172,3 +137,27 @@ NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
   }
   _PC += _A + 1;
 }
+
+NONE CPU::POP(CPU::INSTRUCTION*) noexcept
+{
+  read(_STKPTR);
+  _H = _X;
+
+  if(_STKPTR + 1 <= FIRST_ADDRS_STACK_PTR)
+  {
+    ++_STKPTR;
+  }
+  ++_PC;
+}
+
+NONE CPU::PUH(CPU::INSTRUCTION*) noexcept
+{
+  write(_STKPTR, _H);
+  
+  if(_STKPTR - 1 >= 0x00)
+  {
+    --_STKPTR;
+  }
+  ++_PC;
+}
+

@@ -45,9 +45,9 @@ Para compilar e executar o projeto, siga os passos abaixo:
 Como documentação você pode ler os arquivos .hpp em include/.
 
 Ordem de leitura recomendada:  
-    ->include/ram/ram.hpp;  
-    ->include/bus/bus.hpp;  
-    ->include/cpu/cpu.hpp;  
+    * -> include/ram/ram.hpp;  
+    * -> include/bus/bus.hpp;  
+    * -> include/cpu/cpu.hpp;  
 
 ## Observações
 

@@ -163,9 +163,9 @@ private:
    * EXEMPLO: digamos que o program counter(PC) esteja apontando para um local na memória, esse local será interpretado 
    * como uma instrução. Digamos que PC esteja apontando para o o endereço 0x0004.
    *
-   * +-------------------------+
-   * |0x0004 | 0x0005 | 0x0006 | -> Memória onde está as instruções, pode ser a ram ou caches do processador
-   * +-------------------------+
+   * +--------------------------+
+   * | 0x0004 | 0x0005 | 0x0006 | -> Memória onde está as instruções, pode ser a ram ou caches do processador
+   * +--------------------------+
    * 
    * Como o PC está apontando para o 0x0004 ele é o início da nossa instrução, digamos que temos o valor em binário 0001
    * nesse endereço, então esse é o nosso opcode, se jogamos esse opcode para o array abaixo a instrução seria um ADD lendo

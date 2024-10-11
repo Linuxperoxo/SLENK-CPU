@@ -13,18 +13,39 @@
  *
  */
 
-#define FIRST_ADDRS_TO_READ_INSTRUCTION 0xFFFA
-#define FIRST_ADDRS_STACK_PTR 0xFF
+#include <cctype>
+#include <cstdlib>
+#include <ios>
+#include <iostream>
 
 #include "../include/cpu/cpu.hpp"
 #include "../include/bus/bus.hpp"
 
-CPU::CPU() noexcept
-  : _STATUS(0x0000)
-{
-  reset();
+#define FIRST_ADDRS_TO_READ_INSTRUCTION 0xFFFA
+#define FIRST_ADDRS_STACK_PTR 0xFF
+#define FIRST_INSTRUCTION_OPCODE 0x00
+#define SEC_INSTRUCTION_OPCODE 0x01
+#define ROM_INIT 0x8000
 
-  // (this->*_opcode[0]._instruct_ptr)(&_opcode[0]);
+CPU::CPU(BUS* _bus_to_link) noexcept
+{
+  _STATUS = 0x0000;
+  _PC = FIRST_ADDRS_TO_READ_INSTRUCTION;
+
+  linkbus(_bus_to_link);
+
+  // std::cout << std::hex << static_cast<int>(_PC) << '\n';
+  
+  write(_PC, FIRST_INSTRUCTION_OPCODE);
+  run();
+
+  write(_PC, SEC_INSTRUCTION_OPCODE);
+  _F = ROM_INIT;
+  run();
+  
+  // std::cout << std::hex << static_cast<int>(_PC) << '\n';
+  
+  // (this->*_opcode[0]._instruct_ptr)(&_opcode[0]);  
 }
 
 /*
@@ -82,20 +103,60 @@ NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
   _X = _BUS->read(_data_to_read);  
 }
 
-/*
- *
- * @info   : Essa função apenas define o primeiro bloco de memória que o registrador
- *           PC vai procurar pela primeira instrução, e configura o ponteiro da stack
- *
- * @return : void
- *
- * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
- *
- */
-
-NONE CPU::reset() noexcept
+NONE CPU::run() noexcept
 {
-  _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION; 
-  _STKPTR = FIRST_ADDRS_STACK_PTR; 
+  /*
+   *
+   * O registrador _X vai armazenar o dado
+   *
+   */
+
+  read(_PC);
+
+  std::cout << "INSTRUCTION : \"" << _opcode[_X]._name << "\" "
+            << "SIZE : \"0x" << _opcode[_X]._bytes_to_read + 1 << "\" "
+            << "PC : \"0x" << std::hex << _PC << "\"" << '\n'; 
+
+  (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]);
+  ++_PC;
 }
 
+NONE CPU::RST(CPU::INSTRUCTION*) noexcept
+{
+  _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION; 
+  _STKPTR = FIRST_ADDRS_STACK_PTR;
+}
+
+NONE CPU::ADD(CPU::INSTRUCTION*) noexcept
+{
+  std::cout << "ADD\n";
+}
+
+NONE CPU::SUB(CPU::INSTRUCTION*) noexcept
+{
+  std::cout << "SUB\n";
+}
+
+NONE CPU::JMP(CPU::INSTRUCTION*) noexcept
+{
+  _PC = _F;  
+}
+
+NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
+{
+  _A = 1;
+
+  while(_A < _instruct->_bytes_to_read)
+  {  
+    read(_PC + _A);    
+    
+    std::cout << _X;
+
+    if(_X == '\n')
+    {
+      break;
+    }
+    ++_A;
+  }
+  _PC += _A;
+}

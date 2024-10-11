@@ -18,12 +18,7 @@
 BUS::BUS(CPU* _cpu, RAM* _ram) noexcept
   : _CPU(_cpu),
     _RAM(_ram)
-{
-  if(_CPU != nullptr)
-  {
-    _CPU->linkbus(this);
-  }
-}
+{}
 
 /*
  *

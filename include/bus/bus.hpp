@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 9/10/2024                     |
+ *    |  SRC MOD   : 11/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -83,7 +83,7 @@ public:
 
   ~BUS() noexcept = default;
  
-public:
+private:
   
   /*
    *  
@@ -122,6 +122,8 @@ public:
    */
 
   NONE          write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept; 
+
+  friend class CPU;
 };
 
 #endif

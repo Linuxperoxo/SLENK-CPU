@@ -136,15 +136,16 @@ private:
   };
 
   /*
+   * Aqui eu criei uma struct simples para representar cada instrução.
+   * Ela basicamente vai nos ajudar a organizar todas elas direitinho.
    *
-   * Aqui eu fiz uma pequena struct para cada instrução, ela vai servir para organizar 
-   * cada uma.
+   * O primeiro membro da struct é um ponteiro para uma função, que no caso, 
+   * é a própria instrução que queremos executar.
    *
-   * O primeiro membro é um ponteiro para uma função, que no caso, é a nossa instrução.
+   * O segundo membro indica quantos bytes a gente vai precisar ler para executar 
+   * essa instrução. Isso depende do tipo da instrução, já que algumas vão ler 
+   * dados da memória (como parâmetros) ou pegar informações dos registradores.
    *
-   * O segundo é quantos bytes nos vamos ler para executar uma instrução, ou seja, dependendo
-   * do tipo da instrução, nos vamos ou apenas ler dados na memória como informações para a instrução,
-   * ou pegar dados de registradores para a instrução.
    */
   
   struct INSTRUCTION
@@ -157,42 +158,53 @@ private:
   };
 
   /*
+   * Aqui estão os opcodes. Cada instrução tem um opcode, que é basicamente um código binário
+   * que o processador vai interpretar como uma instrução específica.
    *
-   * Aqui são os opcode. Cada instrução tem um opcode, que é um código binário que será interpretado como instrução.
-   *
-   * EXEMPLO: digamos que o program counter(PC) esteja apontando para um local na memória, esse local será interpretado 
-   * como uma instrução. Digamos que PC esteja apontando para o o endereço 0x0004.
+   * EXEMPLO: Imagine que o program counter (PC) esteja apontando para um endereço na memória,
+   * esse endereço vai ser tratado como uma instrução. Vamos supor que o PC esteja apontando para
+   * o endereço 0x0004.
    *
    * +--------------------------+
-   * | 0x0004 | 0x0005 | 0x0006 | -> Memória onde está as instruções, pode ser a ram ou caches do processador
+   * | 0x0004 | 0x0005 | 0x0006 | -> Memória onde estão as instruções, podendo ser RAM ou cache do processador
    * +--------------------------+
-   * 
-   * Como o PC está apontando para o 0x0004 ele é o início da nossa instrução, digamos que temos o valor em binário 0001
-   * nesse endereço, então esse é o nosso opcode, se jogamos esse opcode para o array abaixo a instrução seria um ADD lendo
-   * o primeiro byte depois do opcode, então essa instrução é de 2 bytes.
    *
-   * Vamos ilustrar como vai funcionar:
+   * O PC aponta para o 0x0004, que será o início da nossa instrução. Se nesse endereço estiver 
+   * o valor binário `0001`, então esse é o opcode. A partir disso, buscamos esse opcode no array 
+   * abaixo, e encontramos a instrução ADD, que lê o primeiro byte depois do opcode. Então, essa 
+   * é uma instrução de 2 bytes.
    *
-   * - Primeiro vamos ler para onde o PC está apontando (0x0004);
-   * - Depois vamos ler esse endereço e interpretar o dado escrito como um opcode;
-   * - Com base nesse opcode a instrução vai ser definida. Como exemplo, vamos usar nosso array _opcode abaixo.
-   *   Jogando o opcode para o array, digamos que o opcode seja 0001 em binário, a instrução retornada pelo array é
-   *   {&CPU::ADD, 1, 1, &_A}, vamos quebrar ela e entender cada parte.
+   * Como isso funciona:
    *
-   *   - A primeira é a instrução que vai ser executa;
-   *   - Quantos bytes ler após o endereço do opcode, nesse caso vamos ler o 0x0005 também;
-   *   - Se a instrução vai ter uma saída que precisa ser guardada, lugar onde vai ser guardada, pode ser um endereço de 
-   *     memória, ou registrador
-   *   - Lugar onde vai ser aramazenado o dado de saída.
+   * - Primeiro, a gente lê o endereço para onde o PC está apontando (0x0004);
+   * - Depois, interpretamos o dado desse endereço como um opcode;
+   * - Com base no opcode, a instrução é definida. Usando o array `_opcode` abaixo, 
+   *   se o opcode for `0001` em binário, a instrução será:
+   *   {&CPU::ADD, 1, 1, &_A}. Vamos entender cada parte:
    *
-   * Nesse exemplo, nossa instrução tem uma dependência, que no caso é o próximo byte após o opcode. 
-   * 
-   * Para ficar mais claro:
-   *  * Em uma soma precisamos de 2 valores, para essa instrução nos temos o primeiro, ele está em 0x0005, mas, e o segundo?
-   *    O segundo está em um registrador, vamos usar os registradores _X e _Y, para esse instrução, vamos usar o registrador _X, 
-   *    e então somar o valor armazenado em 0x0005 com o valor aramazenado em _X. Para instruções que tem 0 nos vamos ler o _X e _Y,
-   *    e para instruções de 2 bytes, vamos ler os próximos 2 bytes após o opcode e somar os 2.
+   *   - Primeiro: a instrução que será executada (nesse caso, `ADD`);
+   *   - Segundo: quantos bytes serão lidos após o endereço do opcode, aqui lemos o byte em 0x0005;
+   *   - Terceiro: se a instrução tem uma saída para ser armazenada e onde ela vai ser guardada 
+   *     (pode ser um endereço de memória ou registrador);
+   *   - Quarto: onde o resultado final será armazenado (nesse caso, no registrador `_A`).
+   *
+   * Nesse exemplo, a instrução `ADD` depende do próximo byte após o opcode.
+   *
+   * Para deixar mais claro:
+   *  * Em uma soma, precisamos de dois valores. O primeiro está em 0x0005, mas e o segundo?
+   *    Ele está num registrador, e vamos usar o registrador `_X` para essa instrução. 
+   *    Assim, somamos o valor de 0x0005 com o que está em `_X`. Para instruções de 1 byte, 
+   *    lemos os registradores `_X` e `_Y`, e para instruções de 2 bytes, lemos os dois 
+   *    próximos bytes após o opcode e fazemos a soma.
    */
+
+  INSTRUCTION _opcode[INSTRUCTIONS_NUM]
+  {
+    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 128, 0, nullptr},
+    {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},
+    {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
+  };
+
 
   INSTRUCTION _opcode[INSTRUCTIONS_NUM]
   {

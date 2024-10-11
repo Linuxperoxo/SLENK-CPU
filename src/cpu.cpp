@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 9/10/2024                     |
+ *    |  SRC MOD   : 11/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -23,6 +23,8 @@ CPU::CPU() noexcept
   : _STATUS(0x0000)
 {
   reset();
+
+  // (this->*_opcode[0]._instruct_ptr)(&_opcode[0]);
 }
 
 /*
@@ -84,7 +86,6 @@ NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
  *
  * @info   : Essa função apenas define o primeiro bloco de memória que o registrador
  *           PC vai procurar pela primeira instrução, e configura o ponteiro da stack
- *           para o início
  *
  * @return : void
  *

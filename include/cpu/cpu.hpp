@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 11/10/2024                    | 
+ *    |  SRC MOD   : 12/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -53,15 +53,22 @@
 #include <cstdint>
 #include <string>
 
-#define INSTRUCTIONS_NUM 12
+#define OPCODE_NUM 8
+#define REGCODE_NUM 4
+
+#define REG_A 0x00
+#define REG_X 0x01
+#define REG_Y 0x02
+#define REG_H 0x03
+#define NO_REG 0x05
 
 constexpr uint32_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
 class BUS;
 
-typedef uint16_t ADDRS_BITS_SIZE;
+typedef uint16_t  ADDRS_BITS_SIZE;
 typedef uint8_t  DATA_BITS_SIZE;
-typedef void     NONE;
+typedef void      NONE;
 
 class CPU
 {
@@ -81,10 +88,10 @@ private:
   /*
    *
    * A      : Usado para armazenar o resultado de operações aritmética;
-   * X      : Principalmente usado para armazenar valores para instruções aritmética, para instruções de 2 bytes, sempre vamos usar ele. Também armazena dados de leitura da memória;
-   * Y      : Mesma coisa do registrador X;
-   * F      : Armazena endereços de memória, usado pela instrução JMP;
-   * H      : Armazena dados da stack, usado pela instrução POP, e joga dados para a stack usado pela instrução PUH;
+   * X      : Uso geral, é usado para armazenar valores para instruções aritmética. Também armazena dados de leitura da memória;
+   * Y      : Uso geral, é usado como high byte pelas funções ADDRS8B e ADDRS16B;
+   * F      : Uso geral, é usando como lower byte pela função ADDRS16B;
+   * H      : Armazena dados da stack, é usado pela instrução POP, e joga dados para a stack usado atravez da instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
    *
@@ -95,10 +102,10 @@ public:
   DATA_BITS_SIZE  _A      { 0x00 };
   DATA_BITS_SIZE  _X      { 0x00 };
   DATA_BITS_SIZE  _Y      { 0x00 };
+  DATA_BITS_SIZE  _F      { 0x00 };
   DATA_BITS_SIZE  _H      { 0x00 };
+  DATA_BITS_SIZE  _STKPTR { 0x00 };
 
-  ADDRS_BITS_SIZE _F      { 0x0000 };
-  ADDRS_BITS_SIZE _STKPTR { 0x0000 };
   ADDRS_BITS_SIZE _PC     { 0x0000 };
 
   /*
@@ -142,15 +149,11 @@ public:
   };
 
   /*
+   *
+   * INSTRUCTION struct:
+   *
    * Aqui eu criei uma struct simples para representar cada instrução.
    * Ela basicamente vai nos ajudar a organizar todas elas direitinho.
-   *
-   * O primeiro membro da struct é um ponteiro para uma função, que no caso, 
-   * é a própria instrução que queremos executar.
-   *
-   * O segundo membro indica quantos bytes a gente vai precisar ler para executar 
-   * essa instrução. Isso depende do tipo da instrução, já que algumas vão ler 
-   * dados da memória (como parâmetros) ou pegar informações dos registradores.
    *
    */
   
@@ -158,65 +161,90 @@ public:
   {
     std::string     _name;
     NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
-    DATA_BITS_SIZE  _bytes_to_read; // Quantos bytes ler após o endereço do opcode
-    DATA_BITS_SIZE  _have_out; // Tem saída?
-    DATA_BITS_SIZE* _out; // Onde vamos armazenar a saída
+    
+    struct
+    {
+      NONE           (CPU::*_addrs_mode)();
+      DATA_BITS_SIZE _regop : 4;
+    };
   };
 
   /*
-   * Aqui estão os opcodes. Cada instrução tem um opcode, que é basicamente um código binário
-   * que o processador vai interpretar como uma instrução específica.
    *
-   * EXEMPLO: Imagine que o program counter (PC) esteja apontando para um endereço na memória,
-   * esse endereço vai ser tratado como uma instrução. Vamos supor que o PC esteja apontando para
-   * o endereço 0x0004.
+   * Essa struct INSTRUCTION basicamente representa cada instrução que o processador vai executar.
    *
-   * +--------------------------+
-   * | 0x0004 | 0x0005 | 0x0006 | -> Memória onde estão as instruções, podendo ser RAM ou cache do processador
-   * +--------------------------+
+   * Cada instrução tem um nome (tipo "ADD"), um ponteiro pra função que faz o trabalho de verdade (via _instruct_ptr),
+   * e um modo de endereçamento (_addrs_mode) caso precise acessar a memória de uma forma especial. O campo _regop
+   * guarda qual registrador está envolvido (pode ser _A, _X, etc.).
    *
-   * O PC aponta para o 0x0004, que será o início da nossa instrução. Se nesse endereço estiver 
-   * o valor binário `0001`, então esse é o opcode. A partir disso, buscamos esse opcode no array 
-   * abaixo, e encontramos a instrução ADD, que lê o primeiro byte depois do opcode. Então, essa 
-   * é uma instrução de 2 bytes.
+   * O _instruct_ptr é um ponteiro pra uma função que vive dentro da classe CPU e que vai rodar a instrução.
+   * O _addrs_mode também é um ponteiro pra função, mas esse aqui cuida de como vamos acessar a memória pra
+   * pegar os dados pra instrução (se necessário).
    *
-   * Como isso funciona:
+   */
+ 
+  /*
    *
-   * - Primeiro, a gente lê o endereço para onde o PC está apontando (0x0004);
-   * - Depois, interpretamos o dado desse endereço como um opcode;
-   * - Com base no opcode, a instrução é definida. Usando o array `_opcode` abaixo, 
-   *   se o opcode for `0001` em binário, a instrução será:
-   *   {&CPU::ADD, 1, 1, &_A}. Vamos entender cada parte:
+   * OPCODE:
    *
-   *   - Primeiro: a instrução que será executada (nesse caso, `ADD`);
-   *   - Segundo: quantos bytes serão lidos após o endereço do opcode, aqui lemos o byte em 0x0005;
-   *   - Terceiro: se a instrução tem uma saída para ser armazenada e onde ela vai ser guardada 
-   *     (pode ser um endereço de memória ou registrador);
-   *   - Quarto: onde o resultado final será armazenado (nesse caso, no registrador `_A`).
+   * Agora aqui temos o array de opcodes. O opcode é o código binário que representa uma instrução.
+   * Por exemplo, se o PC (Program Counter) estiver apontando pra 0x0004 na memória e nesse endereço
+   * o valor for '0001', esse é o opcode que a CPU vai interpretar como uma instrução.
    *
-   * Nesse exemplo, a instrução `ADD` depende do próximo byte após o opcode.
+   * Exemplo:
+   * Se o PC tá em 0x0004 e o valor ali é 0001, isso é um opcode. Aí a gente pega esse opcode e
+   * procura ele no array _opcode pra ver o que é. Se for 'ADD', por exemplo, essa instrução vai
+   * ler o byte seguinte (0x0005) e fazer alguma operação (tipo somar) com o valor desse endereço.
+   * 
+   * O processo geral:
+   * 1. A CPU lê o endereço que o PC aponta (0x0004).
+   * 2. Interpreta o valor lá como um opcode (0001).
+   * 3. Com esse opcode, ela sabe qual instrução executar e segue o resto dos bytes, se necessário.
+   * 
+   * A cada opcode, o array _opcode define o que fazer:
+   * - O nome da instrução (ex.: "ADD").
+   * - O ponteiro pra função que executa a instrução.
+   * - O modo de endereçamento, se necessário.
+   * - Qual registrador está envolvido, se for o caso.
    *
-   * Para deixar mais claro:
-   *  * Em uma soma, precisamos de dois valores. O primeiro está em 0x0005, mas e o segundo?
-   *    Ele está num registrador, e vamos usar o registrador `_X` para essa instrução. 
-   *    Assim, somamos o valor de 0x0005 com o que está em `_X`. Para instruções de 1 byte, 
-   *    lemos os registradores `_X` e `_Y`, e para instruções de 2 bytes, lemos os dois 
-   *    próximos bytes após o opcode e fazemos a soma.
    */
 
-  INSTRUCTION _opcode[INSTRUCTIONS_NUM]
+  INSTRUCTION _opcode[OPCODE_NUM]
   {
-    {"RST", &CPU::RST, 0, 0, nullptr}, {"JMP", &CPU::JMP, 0, 0, nullptr}, {"PRT", &CPU::PRT, 127, 0, nullptr},
-    {"POP", &CPU::POP, 0, 0, nullptr}, {"PUH", &CPU::PUH, 0, 0, nullptr},
-    {"ADD", &CPU::ADD, 0, 1, &_A},     {"ADD", &CPU::ADD, 1, 1, &_A},     {"ADD", &CPU::ADD, 2, 1, &_A},    
-    {"SUB", &CPU::SUB, 0, 1, &_A},     {"SUB", &CPU::SUB, 1, 1, &_A},     {"SUB", &CPU::SUB, 2, 1, &_A}
+    {"RST", &CPU::RST, {nullptr, NO_REG}},        {"JMP", &CPU::JMP, {&CPU::ADDRS16B, NO_REG}}, 
+    {"POP", &CPU::POP, {nullptr, NO_REG}},        {"PSH", &CPU::PSH, {&CPU::ADDRS8B,  NO_REG}},
+    {"ADD", &CPU::ADD, {&CPU::ADDRS16B, REG_A}},  {"ADD", &CPU::ADD, {nullptr, REG_A}},
+    {"SUB", &CPU::SUB, {&CPU::ADDRS16B, REG_A}},  {"SUB", &CPU::SUB, {nullptr, REG_A}}
+  };
+
+  /*
+   *
+   * Esse array _opcode define como cada opcode vai ser tratado. Cada entrada tem:
+   * - O nome da instrução ("RST", "JMP", "POP", etc.).
+   * - Um ponteiro pra função que faz a instrução acontecer (tipo &CPU::ADD).
+   * - O modo de endereçamento (se houver) que diz como acessar a memória.
+   * - Qual registrador será usado na operação (se precisar).
+   * 
+   * A instrução "ADD", por exemplo, pode ter dois modos: com endereçamento (lendo da memória)
+   * ou direto usando o registrador A. A gente pode definir isso com base no opcode.
+   *
+   */
+
+  /*
+   * Agora, o array _regcode armazena os registradores que o processador vai usar.
+   * Cada um deles aponta pra um registrador específico na CPU.
+   */
+
+  uint8_t* _regcode[REGCODE_NUM + 1]
+  {
+    &_A,  &_X, &_Y, &_H, nullptr
   };
 
   /*
    *
    * OPCODES:
    *  RST : 0x00   JMP : 0x01   PRT: 0x02
-   *  POP : 0x03   PUH : 0x04   
+   *  POP : 0x03   PSH : 0x04   
    *  ADD : 0x05   ADD : 0x06   ADD : 0x07
    *  SUB : 0x08   SUB : 0x09   SUB : 0x0A
    *
@@ -242,7 +270,35 @@ private:
 
   /*
    * 
-   * Instruções: 
+   * @info   : Essa função mostra algumas informações, como, endereço atual apontado por PC, 
+   *           endereço atual da STACK e INSTRUÇÃO que vai ser executada 
+   *
+   * @return : void
+   *
+   * @param  : void
+   */
+
+  NONE sts() noexcept; 
+
+  /*
+   * 
+   * INSTRUCTIONS: 
+   * 
+   * RST : Reseta o processador para o estado inicial;
+   * ADD : Instrução de soma, pode tanto somar os primeiro e o segundo byte após a instrução, quanto somar 2 registradores, qualquer soma será armazenado no registrador A;
+   * SUB : A mesma lógica do ADD porém para subtração;
+   * JMP : Lê os 2 bytes após a instrução e pula para o endereço;
+   *       EXEMPLO:
+   *                +---------------------------------+
+   *                | JMP | 0x80 | 0x00 | 0xAA | 0xFA | 
+   *                +---------------------------------+
+   *       Vamos ler os 2 bytes após a instrução, no caso o 0x80 e 0x00, com isso vamos pular para esse endereço JMP 0x8000.
+   *
+   *       OBS : Lembre que esse processador é de 8 bits, então vamos armazenar o high byte no registrador Y e o lower byte no registrador F, lembre se jogar o valor de cada
+   *             um para a stack antes de continuar.
+   *
+   * POP : Desempilha um elemento da stack e armazena no registrador H; 
+   * PSH : Empilha o dado de H para a stack.
    *
    */
 
@@ -250,9 +306,18 @@ private:
   NONE ADD(CPU::INSTRUCTION*) noexcept; // Soma
   NONE SUB(CPU::INSTRUCTION*) noexcept; // Subtração
   NONE JMP(CPU::INSTRUCTION*) noexcept; // Pula PC para um endereço de memória 
-  NONE PRT(CPU::INSTRUCTION*) noexcept; // Exibe caracteres na tela. MÁXIMO DE 127 Bytes de leitura
   NONE POP(CPU::INSTRUCTION*) noexcept; // Desempilha elemento da stack 
-  NONE PUH(CPU::INSTRUCTION*) noexcept; // Empilha elemento na stack
+  NONE PSH(CPU::INSTRUCTION*) noexcept; // Empilha elemento na stack
+
+
+  /*
+   *
+   * ADDRESS MODE:
+   *
+   */
+  
+  NONE ADDRS8B() noexcept;
+  NONE ADDRS16B() noexcept;
 
 public:
 

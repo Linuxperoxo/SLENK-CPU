@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 11/10/2024                    |
+ *    |  SRC MOD   : 12/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -84,7 +84,10 @@ int main()
   new(_ram) RAM();
   new(_cpu) CPU(_bus);
 
-  _cpu->write(ROM_INIT , 0x0002); // Instrução PRT
+  _cpu->write(ROM_INIT, 0x0004); // Instrução ADD
+  _cpu->write(ROM_INIT + 1, 0x0006); // Instrução SUB
+  
+  /*
   _cpu->write(ROM_INIT + 1, 'H');
   _cpu->write(ROM_INIT + 2, 'E');
   _cpu->write(ROM_INIT + 3, 'L');
@@ -99,6 +102,7 @@ int main()
   _cpu->write(ROM_INIT + 12, 'D');
   _cpu->write(ROM_INIT + 13, '!');
   _cpu->write(ROM_INIT + 14, '\n');
+  */
 
   //_cpu->write(ROM_INIT, 0x0004);
   //_cpu->write(ROM_INIT + 1, 0x0003);
@@ -111,6 +115,8 @@ int main()
    *  Um clock simples e temporário
    *
   */
+
+  _cpu->_I = 0;
 
   while(true)
   {

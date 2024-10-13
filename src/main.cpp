@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 12/10/2024                    |
+ *    |  SRC MOD   : 13/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -84,39 +84,54 @@ int main()
   new(_ram) RAM();
   new(_cpu) CPU(_bus);
 
-  _cpu->write(ROM_INIT, 0x0004); // Instrução ADD
-  _cpu->write(ROM_INIT + 1, 0x0006); // Instrução SUB
+  /*
+   *
+   *  Escrevendo ROM na memória
+   *
+   */
+
+  _cpu->write(ROM_INIT, 0x08); // Escrevendo a instrução PTR no início da rom(0x8000) 
   
   /*
+   *
+   *  Os caracteres que serão impressos com a instrução PRT
+   *
+   */
+
   _cpu->write(ROM_INIT + 1, 'H');
-  _cpu->write(ROM_INIT + 2, 'E');
-  _cpu->write(ROM_INIT + 3, 'L');
-  _cpu->write(ROM_INIT + 4, 'L');
-  _cpu->write(ROM_INIT + 5, 'O');
-  _cpu->write(ROM_INIT + 6, ',');
-  _cpu->write(ROM_INIT + 7, ' ');
-  _cpu->write(ROM_INIT + 8, 'W');
+  _cpu->write(ROM_INIT + 3, 'E');
+  _cpu->write(ROM_INIT + 5, 'L');
+  _cpu->write(ROM_INIT + 7, 'L');
   _cpu->write(ROM_INIT + 9, 'O');
-  _cpu->write(ROM_INIT + 10, 'R');
-  _cpu->write(ROM_INIT + 11, 'L');
-  _cpu->write(ROM_INIT + 12, 'D');
-  _cpu->write(ROM_INIT + 13, '!');
-  _cpu->write(ROM_INIT + 14, '\n');
-  */
+  _cpu->write(ROM_INIT + 11, ',');
+  _cpu->write(ROM_INIT + 13, ' ');
+  _cpu->write(ROM_INIT + 15, 'W');
+  _cpu->write(ROM_INIT + 17, 'O');
+  _cpu->write(ROM_INIT + 19, 'R');
+  _cpu->write(ROM_INIT + 21, 'L');
+  _cpu->write(ROM_INIT + 23, 'D');
+  _cpu->write(ROM_INIT + 25, '!');
+  _cpu->write(ROM_INIT + 27, '\n');
+  
+  /*
+   *
+   * Escrevendo uma instrução de JMP para o endereço 0x8000
+   *
+   */
 
-  //_cpu->write(ROM_INIT, 0x0004);
-  //_cpu->write(ROM_INIT + 1, 0x0003);
-
-  //_cpu->_F = ROM_INIT;
-  //_cpu->write(ROM_INIT, 0x0001);
+  _cpu->write(ROM_INIT + 28, 0x01);
+  _cpu->write(ROM_INIT + 29, 0x80);
+  _cpu->write(ROM_INIT + 30, 0x1f); 
 
   /*
    *
-   *  Um clock simples e temporário
+   *  Simulando um clock simples
    *
   */
 
   _cpu->_I = 0;
+
+  uint8_t i { 0 };
 
   while(true)
   {
@@ -127,8 +142,10 @@ int main()
         break;
       }
     }
-    _cpu->run();
+    _cpu->run(); // 1 ciclo
     std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz    
+    if(i == 3) _cpu->_B = 1;
+    ++i;
   }
 
   _cpu->~CPU();

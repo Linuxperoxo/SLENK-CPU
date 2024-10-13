@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 12/10/2024                    | 
+ *    |  SRC MOD   : 13/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -51,9 +51,10 @@
 #define __CPU_HPP__
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
-#define OPCODE_NUM 8
+#define OPCODE_NUM 14
 #define REGCODE_NUM 4
 
 #define REG_A 0x00
@@ -62,12 +63,16 @@
 #define REG_H 0x03
 #define NO_REG 0x05
 
+#define NO_ADDRS_READ nullptr
+
+#define CPU_LOG // Comente essa linha se não quiser o log de cada instrução
+
 constexpr uint32_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
 class BUS;
 
 typedef uint16_t  ADDRS_BITS_SIZE;
-typedef uint8_t  DATA_BITS_SIZE;
+typedef uint8_t   DATA_BITS_SIZE;
 typedef void      NONE;
 
 class CPU
@@ -89,8 +94,9 @@ private:
    *
    * A      : Usado para armazenar o resultado de operações aritmética;
    * X      : Uso geral, é usado para armazenar valores para instruções aritmética. Também armazena dados de leitura da memória;
-   * Y      : Uso geral, é usado como high byte pelas funções ADDRS8B e ADDRS16B;
-   * F      : Uso geral, é usando como lower byte pela função ADDRS16B;
+   * Y      : Uso geral, é usado pela função BYTE1;
+   * F      : Uso geral, é usado pela função BYTE2;
+   * Q      : Uso geral, é usado pela função BYTE3;
    * H      : Armazena dados da stack, é usado pela instrução POP, e joga dados para a stack usado atravez da instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
@@ -103,6 +109,7 @@ public:
   DATA_BITS_SIZE  _X      { 0x00 };
   DATA_BITS_SIZE  _Y      { 0x00 };
   DATA_BITS_SIZE  _F      { 0x00 };
+  DATA_BITS_SIZE  _Q      { 0x00 };
   DATA_BITS_SIZE  _H      { 0x00 };
   DATA_BITS_SIZE  _STKPTR { 0x00 };
 
@@ -159,14 +166,9 @@ public:
   
   struct INSTRUCTION
   {
-    std::string     _name;
+    std::string     _name; // nome da instrução que vai aparecer no LOG
     NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
-    
-    struct
-    {
-      NONE           (CPU::*_addrs_mode)();
-      DATA_BITS_SIZE _regop : 4;
-    };
+    DATA_BITS_SIZE _regop : 4; // Qual registrador de 8 bits é default para resultado a instrução, vai ser mais usados em insturções aritméticas 
   };
 
   /*
@@ -211,10 +213,9 @@ public:
 
   INSTRUCTION _opcode[OPCODE_NUM]
   {
-    {"RST", &CPU::RST, {nullptr, NO_REG}},        {"JMP", &CPU::JMP, {&CPU::ADDRS16B, NO_REG}}, 
-    {"POP", &CPU::POP, {nullptr, NO_REG}},        {"PSH", &CPU::PSH, {&CPU::ADDRS8B,  NO_REG}},
-    {"ADD", &CPU::ADD, {&CPU::ADDRS16B, REG_A}},  {"ADD", &CPU::ADD, {nullptr, REG_A}},
-    {"SUB", &CPU::SUB, {&CPU::ADDRS16B, REG_A}},  {"SUB", &CPU::SUB, {nullptr, REG_A}}
+    {"RST", &CPU::RST, NO_REG}, {"JMP", &CPU::JMP, NO_REG},  {"POP", &CPU::POP, NO_REG},  {"PSH", &CPU::PSH, NO_REG},
+    {"MOV", &CPU::MOV, NO_REG}, {"MOV", &CPU::MOV2, NO_REG}, {"MOV", &CPU::MOV3, NO_REG}, {"MOV", &CPU::MOV4, NO_REG},
+    {"PRT", &CPU::PRT, NO_REG},
   };
 
   /*
@@ -243,10 +244,9 @@ public:
   /*
    *
    * OPCODES:
-   *  RST : 0x00   JMP : 0x01   PRT: 0x02
-   *  POP : 0x03   PSH : 0x04   
-   *  ADD : 0x05   ADD : 0x06   ADD : 0x07
-   *  SUB : 0x08   SUB : 0x09   SUB : 0x0A
+   *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
+   *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
+   *  PRT : 0x08
    *
    */
 
@@ -308,16 +308,31 @@ private:
   NONE JMP(CPU::INSTRUCTION*) noexcept; // Pula PC para um endereço de memória 
   NONE POP(CPU::INSTRUCTION*) noexcept; // Desempilha elemento da stack 
   NONE PSH(CPU::INSTRUCTION*) noexcept; // Empilha elemento na stack
-
-
+  NONE PRT(CPU::INSTRUCTION*) noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
+  
   /*
    *
-   * ADDRESS MODE:
+   * Nesse caso a instrução MOV vai ter 4 variações
+   *
+   * 1. Mover dado bruto para um registrador(MOV) 
+   *    EXEMPLO : MOV A, 1
+   * 
+   * 2. Mover dado de um registrador para outro (MOV2) 
+   *    EXEMPLO : MOV A, X
+   * 
+   * 3. Mover dado de uma área da memória para um registrador(MOV3)
+   *    EXEMPLO : MOV A, 0x80FF
+   *
+   * 3. Mover dado de um registrador para uma área da memória
+   *    EXEMPLO : MOV 0x80FF, A
    *
    */
-  
-  NONE ADDRS8B() noexcept;
-  NONE ADDRS16B() noexcept;
+
+  NONE MOV(CPU::INSTRUCTION*) noexcept; NONE MOV2(CPU::INSTRUCTION*) noexcept; NONE MOV3(CPU::INSTRUCTION*) noexcept; NONE MOV4(CPU::INSTRUCTION*) noexcept;
+
+  NONE BYTE1() noexcept;
+  NONE BYTE2() noexcept;
+  NONE BYTE3() noexcept;
 
 public:
 

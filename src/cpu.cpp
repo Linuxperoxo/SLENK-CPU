@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 12/10/2024                    |
+ *    |  SRC MOD   : 13/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -97,10 +97,36 @@ NONE CPU::run() noexcept
 {
   read(_PC); // Lendo a memória que o registrador PC está apontando, essa  memória será armazenada no registrador _X
 
+#if defined(CPU_LOG)
   sts(); // Mostrando informações de execução
-
+#endif
+  
   (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]); // Executando a instrução
 }
+
+NONE CPU::BYTE1() noexcept
+{  
+  read(_PC + 1);
+  _Y = _X;
+}
+
+NONE CPU::BYTE2() noexcept
+{
+  read(_PC + 2);
+  _F = _X;
+}
+
+NONE CPU::BYTE3() noexcept
+{
+  read(_PC + 3);
+  _Q = _X;
+}
+
+/*
+ *
+ *  INSTRUCTION RST:
+ *
+ */
 
 NONE CPU::RST(CPU::INSTRUCTION*) noexcept
 {
@@ -125,36 +151,7 @@ NONE CPU::RST(CPU::INSTRUCTION*) noexcept
 
 /*
  *
- * ADDRESS MODE:
- *
- */
-
-NONE CPU::ADDRS8B() noexcept
-{
-  read(_PC + 1);
-  _Y = _X;
-}
-
-/*
- *
- * Apenas uma pequena gambiarra para ler um endereço de memória de 16 bits
- *
- */
-
-NONE CPU::ADDRS16B() noexcept
-{
-  read(_PC + 1);
-
-  _Y = _X;
-
-  read(_PC + 2);
-
-  _F = _X;
-}
-
-/*
- *
- *  INSTRUCTIONS
+ *  INSTRUCTION ADD:
  *
  */
 
@@ -164,21 +161,40 @@ NONE CPU::ADD(CPU::INSTRUCTION*) noexcept
   ++_PC;
 }
 
+/*
+ *
+ * INSTRUCTION SUB:
+ *
+ */
+
 NONE CPU::SUB(CPU::INSTRUCTION*) noexcept
 {
   std::cout << "SUB\n";
   ++_PC;
 }
 
+/*
+ *
+ * INSTRUCTION JMP:
+ *
+ */
+
 NONE CPU::JMP(CPU::INSTRUCTION* _instruct) noexcept
 {
-  (this->*_instruct->_addrs_mode)();
-  
-  _PC = _PC << 16;
+  BYTE1();
+  BYTE2();
+
+  _PC = 0;
 
   _PC = (_PC | _Y) << 8;
   _PC = (_PC | _F);
 }
+
+/*
+ *
+ * INSTRUCTION POP: 
+ *
+ */
 
 NONE CPU::POP(CPU::INSTRUCTION*) noexcept
 {
@@ -192,14 +208,113 @@ NONE CPU::POP(CPU::INSTRUCTION*) noexcept
   ++_PC;
 }
 
+/*
+ *
+ * INSTRUCTION PSH:
+ *
+ */
+
 NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
 {
+  if(_STKPTR != FIRST_ADDRS_STACK_PTR)
+  {
+    if(_STKPTR -1 >= 0x00)
+    {
+      -- _STKPTR;
+    }
+  }
+  
   write(_STKPTR, _H);
   
-  if(_STKPTR - 1 >= 0x00)
-  {
-    --_STKPTR;
-  }
   ++_PC;
 }
 
+/*
+ *
+ *  INSTRUCTION PRT:
+ *
+ */
+
+NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
+{
+  BYTE1();
+
+  ++_PC;
+  
+  while(_Y != '\n')
+  {   
+    std::cout << _Y;
+    
+    BYTE1();
+    
+    ++_PC;
+ }
+  
+  std::cout << _Y;
+  
+  ++_PC;
+}
+
+/*
+ *
+ * INSTRUCTION MOV: 
+ *
+ */
+
+NONE CPU::MOV(CPU::INSTRUCTION* _instruct) noexcept
+{
+  BYTE1();
+  BYTE2();
+
+  *_regcode[_Y] = _F;
+
+  _PC += 3;
+}
+
+NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
+{
+  BYTE1();
+  BYTE2();
+
+  *_regcode[_Y] = *_regcode[_F];
+
+  _PC += 3;
+}
+
+NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
+{
+  BYTE1();
+  BYTE2();
+  BYTE3();
+
+  _H = _PC;
+
+  PSH(nullptr);
+
+  _H = (_PC >> 8);
+  
+  PSH(nullptr);
+
+  _PC = 0;
+  _PC = (_PC | _F) << 8;
+  _PC = (_PC | _Q);
+
+  read(_PC);
+
+  *_regcode[_Y] = _X;
+
+  POP(nullptr);
+
+  _PC = 0;
+  _PC = (_PC | _H) << 8;
+
+  POP(nullptr);
+
+  _PC = (_PC | _H);
+
+  _PC += 4;
+}
+
+NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
+{
+}

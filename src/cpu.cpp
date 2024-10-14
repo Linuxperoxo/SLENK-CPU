@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 13/10/2024                    |
+ *    |  SRC MOD   : 14/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -28,6 +28,7 @@
 #define SEC_INSTRUCTION_OPCODE 0x01
 
 #define FIRST_ADDRS_STACK_PTR 0xFF
+
 #define ROM_INIT 0x8000
 
 constexpr uint16_t CLOCK_FREC {1000000000 / 1790000 };
@@ -146,7 +147,7 @@ NONE CPU::RST(CPU::INSTRUCTION*) noexcept
   
   _STATUS = 0x00;
 
-  ++_PC; // Isso é temporário
+  ++_PC;
 }
 
 /*
@@ -233,19 +234,21 @@ NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
  */
 
 NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
-{
+{ 
   BYTE1();
-  
+
+  ++_PC;
+
   while(_Y != '\n')
-  {
+  {  
     std::cout << _Y;
-    
-    BYTE1();  
-    
+
+    BYTE1();
+      
     ++_PC;
-  } 
+  }
   std::cout << _Y;
-  
+
   ++_PC;
 }
 
@@ -262,7 +265,7 @@ NONE CPU::MOV(CPU::INSTRUCTION* _instruct) noexcept
 
   *_regcode[_Y] = _F;
 
-  _PC += 2;
+  _PC += 3;
 }
 
 NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
@@ -272,7 +275,7 @@ NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
 
   *_regcode[_Y] = *_regcode[_F];
 
-  _PC += 2;
+  _PC += 3;
 }
 
 NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
@@ -313,7 +316,7 @@ NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
 
   _PC = (_PC | _H);
 
-  _PC += 3;  
+  _PC += 4;  
 }
 
 NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
@@ -345,5 +348,5 @@ NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
 
   _PC = (_PC | _H);
 
-  _PC += 3;
+  _PC += 4;
 }

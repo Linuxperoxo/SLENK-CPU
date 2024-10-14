@@ -51,17 +51,17 @@
 #define __CPU_HPP__
 
 #include <cstdint>
-#include <functional>
 #include <string>
 
 #define OPCODE_NUM 14
-#define REGCODE_NUM 4
+#define REGCODE_NUM 5
 
 #define REG_A 0x00
 #define REG_X 0x01
 #define REG_Y 0x02
 #define REG_H 0x03
-#define NO_REG 0x05
+#define REG_Q 0x04
+#define NO_REG 0x06
 
 #define NO_ADDRS_READ nullptr
 
@@ -238,7 +238,7 @@ public:
 
   uint8_t* _regcode[REGCODE_NUM + 1]
   {
-    &_A,  &_X, &_Y, &_H, nullptr
+    &_A,  &_X, &_Y, &_H, &_Q, nullptr
   };
 
   /*
@@ -330,9 +330,18 @@ private:
 
   NONE MOV(CPU::INSTRUCTION*) noexcept; NONE MOV2(CPU::INSTRUCTION*) noexcept; NONE MOV3(CPU::INSTRUCTION*) noexcept; NONE MOV4(CPU::INSTRUCTION*) noexcept;
 
-  NONE BYTE1() noexcept;
-  NONE BYTE2() noexcept;
-  NONE BYTE3() noexcept;
+
+  /*
+   *
+   * Funções para facilitar 
+   *
+   * Aqui podemos ler o 1, 2 e 3 byte após a instrução 
+   *
+   */
+
+  NONE BYTE1() noexcept; // Armazena no registrador Y
+  NONE BYTE2() noexcept; // Armazena no registrador F
+  NONE BYTE3() noexcept; // Armazena no registrador Q
 
 public:
 

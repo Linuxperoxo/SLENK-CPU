@@ -215,17 +215,14 @@ NONE CPU::POP(CPU::INSTRUCTION*) noexcept
  */
 
 NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
-{
-  if(_STKPTR != FIRST_ADDRS_STACK_PTR)
+{ 
+  if(_STKPTR -1 >= 0x00)
   {
-    if(_STKPTR -1 >= 0x00)
-    {
-      -- _STKPTR;
-    }
+    --_STKPTR;
   }
-  
+
   write(_STKPTR, _H);
-  
+
   ++_PC;
 }
 
@@ -238,18 +235,15 @@ NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
 NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
 {
   BYTE1();
-
-  ++_PC;
   
   while(_Y != '\n')
-  {   
+  {
     std::cout << _Y;
     
-    BYTE1();
+    BYTE1();  
     
     ++_PC;
- }
-  
+  } 
   std::cout << _Y;
   
   ++_PC;
@@ -268,7 +262,7 @@ NONE CPU::MOV(CPU::INSTRUCTION* _instruct) noexcept
 
   *_regcode[_Y] = _F;
 
-  _PC += 3;
+  _PC += 2;
 }
 
 NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
@@ -278,10 +272,51 @@ NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
 
   *_regcode[_Y] = *_regcode[_F];
 
-  _PC += 3;
+  _PC += 2;
 }
 
 NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
+{
+  BYTE1();
+  BYTE2();
+  BYTE3();
+
+  /*
+   *
+   * Decidi usar a stack tanto para Instrução quando para a MOV4, eu poderia simplificar muito isso, 
+   * mas quis deixar assim para ser mais "fiel", compensa o overhead adicional
+   *
+   */
+
+  _H = _PC;
+
+  PSH(nullptr);
+
+  _H = (_PC >> 8);
+
+  PSH(nullptr);
+
+  _PC = 0;
+  _PC = (_PC | _F) << 8;
+  _PC = (_PC | _Q);
+
+  read(_PC);
+
+  *_regcode[_Y] = _X;
+
+  POP(nullptr);
+ 
+  _PC = 0;
+  _PC = (_PC | _H) << 8;
+ 
+  POP(nullptr);
+
+  _PC = (_PC | _H);
+
+  _PC += 3;  
+}
+
+NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
 {
   BYTE1();
   BYTE2();
@@ -299,9 +334,7 @@ NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
   _PC = (_PC | _F) << 8;
   _PC = (_PC | _Q);
 
-  read(_PC);
-
-  *_regcode[_Y] = _X;
+  write(_PC, *_regcode[_Y]);
 
   POP(nullptr);
 
@@ -312,9 +345,5 @@ NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
 
   _PC = (_PC | _H);
 
-  _PC += 4;
-}
-
-NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
-{
+  _PC += 3;
 }

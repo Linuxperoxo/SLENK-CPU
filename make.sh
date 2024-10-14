@@ -10,7 +10,7 @@ BUILD_DIR="${ROOT_PROJECT}/build"
 make_bin()
 {
   cd "${BUILD_DIR}/obj"
-  g++ *.o -v -o "${BUILD_DIR}/bin/${BIN_NAME}" -march=native -O3 -Wall -Wextra 
+  g++ *.o -v -o "${BUILD_DIR}/bin/${BIN_NAME}" -march=native -O3 -Wall -Wextra
   strip "${BUILD_DIR}/bin/${BIN_NAME}"
 }
 

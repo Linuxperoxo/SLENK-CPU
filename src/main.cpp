@@ -98,31 +98,44 @@ int main()
    *
    */
 
-  _cpu->write(ROM_INIT + 1, 'H');
-  _cpu->write(ROM_INIT + 3, 'E');
-  _cpu->write(ROM_INIT + 5, 'L');
-  _cpu->write(ROM_INIT + 7, 'L');
-  _cpu->write(ROM_INIT + 9, 'O');
-  _cpu->write(ROM_INIT + 11, ',');
-  _cpu->write(ROM_INIT + 13, ' ');
-  _cpu->write(ROM_INIT + 15, 'W');
-  _cpu->write(ROM_INIT + 17, 'O');
-  _cpu->write(ROM_INIT + 19, 'R');
-  _cpu->write(ROM_INIT + 21, 'L');
-  _cpu->write(ROM_INIT + 23, 'D');
-  _cpu->write(ROM_INIT + 25, '!');
-  _cpu->write(ROM_INIT + 27, '\n');
-  
+  _cpu->write(ROM_INIT + 1,  'H');
+  _cpu->write(ROM_INIT + 2,  'E');
+  _cpu->write(ROM_INIT + 3,  'L');
+  _cpu->write(ROM_INIT + 4,  'L');
+  _cpu->write(ROM_INIT + 5,  'O');
+  _cpu->write(ROM_INIT + 6,  ',');
+  _cpu->write(ROM_INIT + 7,  ' ');
+  _cpu->write(ROM_INIT + 8,  'W');
+  _cpu->write(ROM_INIT + 9,  'O');
+  _cpu->write(ROM_INIT + 10, 'R');
+  _cpu->write(ROM_INIT + 11, 'L');
+  _cpu->write(ROM_INIT + 12, 'D');
+  _cpu->write(ROM_INIT + 13, '!');
+  _cpu->write(ROM_INIT + 14, '\n');
+
   /*
    *
-   * Escrevendo uma instrução de JMP para o endereço 0x8000
+   * Escrevendo uma instrução de JMP para o endereço 0x803d
    *
    */
 
-  _cpu->write(ROM_INIT + 28, 0x01);
-  _cpu->write(ROM_INIT + 29, 0x80);
-  _cpu->write(ROM_INIT + 30, 0x1f); 
+  _cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
+  _cpu->write(ROM_INIT + 16, 0x80);
+  _cpu->write(ROM_INIT + 17, 0x3d); 
 
+  /*
+   *
+   * Testando instrução MOV
+   *
+   */
+
+  _cpu->write(ROM_INIT + 0x3d, 0x07); // Instrução MOV4
+  _cpu->write(ROM_INIT + 0x3e, 0x00);
+  _cpu->write(ROM_INIT + 0x3f, 0x80);
+  _cpu->write(ROM_INIT + 0x40, 0x01); // Instrução JMP para endereço 0x8000
+  _cpu->write(ROM_INIT + 0x41, 0x80);
+  _cpu->write(ROM_INIT + 0x41, 0x00);
+  
   /*
    *
    *  Simulando um clock simples
@@ -143,9 +156,8 @@ int main()
       }
     }
     _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz    
-    if(i == 3) _cpu->_B = 1;
-    ++i;
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz
+    if(++i == 6) _cpu->_B = 1;
   }
 
   _cpu->~CPU();

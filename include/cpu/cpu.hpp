@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 13/10/2024                    | 
+ *    |  SRC MOD   : 14/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -61,7 +61,6 @@
 #define REG_Y 0x02
 #define REG_H 0x03
 #define REG_Q 0x04
-#define NO_REG 0x06
 
 #define NO_ADDRS_READ nullptr
 
@@ -93,13 +92,13 @@ private:
   /*
    *
    * A      : Usado para armazenar o resultado de operações aritmética;
-   * X      : Uso geral, é usado para armazenar valores para instruções aritmética. Também armazena dados de leitura da memória;
+   * X      : Uso geral, armazena dados de leitura da memória;
    * Y      : Uso geral, é usado pela função BYTE1;
    * F      : Uso geral, é usado pela função BYTE2;
    * Q      : Uso geral, é usado pela função BYTE3;
-   * H      : Armazena dados da stack, é usado pela instrução POP, e joga dados para a stack usado atravez da instrução PUH;
+   * H      : Armazena dados da stack, é usado pela instrução POP, joga dados para a stack através da instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
-   * PC     : Armazena o endereço para a próxima instrução a ser executada pelo processador.
+   * PC     : Armazena o endereço da instrução a ser executada.
    *
    */
 
@@ -122,7 +121,6 @@ public:
   *  +---+---+---+---+---+---+---+---+
   *  | N | V | U | B | D | I | Z | C | <- BITS
   *  +---+---+---+---+---+---+---+---+
-  *    0   0   0   0   0   0   0   0
   *
   *  CARRAY BIT    : É usado nas operações aritméticas para indicar se houve um "carry out" ou seja subir 1;
   *  ZERO BIT      : Setada quando um resultado de uma operação é aritmética é 0;
@@ -167,8 +165,7 @@ public:
   struct INSTRUCTION
   {
     std::string     _name; // nome da instrução que vai aparecer no LOG
-    NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função
-    DATA_BITS_SIZE _regop : 4; // Qual registrador de 8 bits é default para resultado a instrução, vai ser mais usados em insturções aritméticas 
+    NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função 
   };
 
   /*
@@ -213,9 +210,9 @@ public:
 
   INSTRUCTION _opcode[OPCODE_NUM]
   {
-    {"RST", &CPU::RST, NO_REG}, {"JMP", &CPU::JMP, NO_REG},  {"POP", &CPU::POP, NO_REG},  {"PSH", &CPU::PSH, NO_REG},
-    {"MOV", &CPU::MOV, NO_REG}, {"MOV", &CPU::MOV2, NO_REG}, {"MOV", &CPU::MOV3, NO_REG}, {"MOV", &CPU::MOV4, NO_REG},
-    {"PRT", &CPU::PRT, NO_REG},
+    {"RST", &CPU::RST}, {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
+    {"MOV", &CPU::MOV}, {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
+    {"PRT", &CPU::PRT},
   };
 
   /*
@@ -223,22 +220,19 @@ public:
    * Esse array _opcode define como cada opcode vai ser tratado. Cada entrada tem:
    * - O nome da instrução ("RST", "JMP", "POP", etc.).
    * - Um ponteiro pra função que faz a instrução acontecer (tipo &CPU::ADD).
-   * - O modo de endereçamento (se houver) que diz como acessar a memória.
-   * - Qual registrador será usado na operação (se precisar).
    * 
-   * A instrução "ADD", por exemplo, pode ter dois modos: com endereçamento (lendo da memória)
-   * ou direto usando o registrador A. A gente pode definir isso com base no opcode.
-   *
    */
 
   /*
+   *
    * Agora, o array _regcode armazena os registradores que o processador vai usar.
    * Cada um deles aponta pra um registrador específico na CPU.
+   *
    */
 
-  uint8_t* _regcode[REGCODE_NUM + 1]
+  uint8_t* _regcode[REGCODE_NUM]
   {
-    &_A,  &_X, &_Y, &_H, &_Q, nullptr
+    &_A,  &_X, &_Y, &_H, &_Q
   };
 
   /*
@@ -395,4 +389,3 @@ public:
 };
 
 #endif
-

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 13/10/2024                    |
+ *    |  SRC MOD   : 14/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -129,12 +129,13 @@ int main()
    *
    */
 
-  _cpu->write(ROM_INIT + 0x3d, 0x07); // Instrução MOV4
+  _cpu->write(ROM_INIT + 0x3d, 0x06); // Instrução MOV4
   _cpu->write(ROM_INIT + 0x3e, 0x00);
   _cpu->write(ROM_INIT + 0x3f, 0x80);
-  _cpu->write(ROM_INIT + 0x40, 0x01); // Instrução JMP para endereço 0x8000
-  _cpu->write(ROM_INIT + 0x41, 0x80);
-  _cpu->write(ROM_INIT + 0x41, 0x00);
+  _cpu->write(ROM_INIT + 0x40, 0x01);
+  _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
+  _cpu->write(ROM_INIT + 0x42, 0x80);
+  _cpu->write(ROM_INIT + 0x43, 0x00);
   
   /*
    *
@@ -156,8 +157,7 @@ int main()
       }
     }
     _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz
-    if(++i == 6) _cpu->_B = 1;
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz  
   }
 
   _cpu->~CPU();

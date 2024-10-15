@@ -27,11 +27,11 @@ RAM::RAM() noexcept
   
   if(_MEMORY == MAP_FAILED)
   {
-    std::cout << "Error to alloc RAM\n";
+    std::cout << "Error to alloc memory for class RAM\n";
     exit(EXIT_FAILURE);
   }
 
-  std::memset(_MEMORY, 0x00, MEMORY_SIZE);
+  std::memset(_MEMORY, 0x00, MEMORY_SIZE); 
 }
 
 RAM::~RAM() noexcept

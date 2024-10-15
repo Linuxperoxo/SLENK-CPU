@@ -40,7 +40,7 @@
  *
 */
 
-int main()
+int main(int argc, char** argv)
 {
   CPU* _cpu 
   {
@@ -86,10 +86,11 @@ int main()
 
   /*
    *
-   *  Escrevendo ROM na memória
+   *  Escrevendo a ROM
    *
    */
 
+  
   _cpu->write(ROM_INIT, 0x08); // Escrevendo a instrução PTR no início da rom(0x8000) 
   
   /*
@@ -136,7 +137,7 @@ int main()
   _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
   _cpu->write(ROM_INIT + 0x42, 0x80);
   _cpu->write(ROM_INIT + 0x43, 0x00);
-  
+
   /*
    *
    *  Simulando um clock simples
@@ -144,8 +145,6 @@ int main()
   */
 
   _cpu->_I = 0;
-
-  uint8_t i { 0 };
 
   while(true)
   {
@@ -157,7 +156,7 @@ int main()
       }
     }
     _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz  
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz      
   }
 
   _cpu->~CPU();

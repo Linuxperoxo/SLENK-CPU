@@ -105,6 +105,12 @@ NONE CPU::run() noexcept
   (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]); // Executando a instrução
 }
 
+/*
+ *
+ * Funções para facilitar minha vida
+ *
+ */
+
 NONE CPU::BYTE1() noexcept
 {  
   read(_PC + 1);

@@ -62,8 +62,6 @@
 #define REG_H 0x03
 #define REG_Q 0x04
 
-#define NO_ADDRS_READ nullptr
-
 #define CPU_LOG // Comente essa linha se não quiser o log de cada instrução
 
 constexpr uint32_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz

@@ -1,3 +1,18 @@
+/*
+ *
+ *
+ *    /--------------------------------------------O
+ *    |                                            |
+ *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
+ *    |  AUTHOR    : Linuxperoxo                   |
+ *    |  FILE      : convert_bin.cpp               |
+ *    |  SRC MOD   : 16/10/2024                    |
+ *    |                                            |
+ *    O--------------------------------------------/
+ *
+ *
+ */
+
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>

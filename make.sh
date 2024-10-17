@@ -31,12 +31,13 @@ case "${1}" in
     rm -rf ./build
   ;;
   
-  run) 
-    ./build/bin/CPU
-  ;;
-
-  *) 
+  build) 
     make_obj
     make_bin
+  ;;
+
+  *)
+    echo "build -> to compile source"
+    echo "clean -> to clean build directory"
   ;;
 esac

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 16/10/2024                    |
+ *    |  SRC MOD   : 17/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -82,7 +82,7 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
   uint8_t _bits { 0 }; // Vendo quantos bits nos copiamos
   uint8_t _flip { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
 
-  for(uint32_t _i { 0 }; _i <= BYTE * 32; _i++, _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
+  for(uint32_t _i { 0 }; _i < BYTE * 32; _i++, _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
   {
 
     /*
@@ -91,26 +91,31 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
      *
      */
 
-    _byte = _byte | (_ROM_BUFFER[_i] - '0') << (7 - _flip);
-
     if(_bits % 8 == 0 && _bits > 0)
     {
-
+      //std::cout << "BYTE" << '\n';
+      //std::cout << "INDEX : " << _bits / 7 - 1 << '\n';
+      
       /*
        *
        * Quando copiamos 1 byte do arquivo jogamos esse byte para a memória da rom
        *
        */
 
-      _ROM[(_bits / 8) - 1] = _byte;
+      _ROM[(_bits / 7) - 1] = _byte;
       _byte                 = 0;
       _flip                 = 0;
     }
+
+    _byte = _byte | (_ROM_BUFFER[_i] - '0') << (7 - _flip);
+
+    //std::cout << static_cast<int>(_ROM_BUFFER[_i] - '0') << " FLIP " << static_cast<int>(7 - _flip) << " BITS COUNTER : " << static_cast<int>(_i) << '\n';
   }
 
   munmap(_ROM_BUFFER, _ROM_MAX_SIZE);
 
   /*
+   * ÁREA DEBUG:
    *
    * Pequenos testes xD
    *
@@ -118,5 +123,13 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
    * std::cout << static_cast<int>(*reinterpret_cast<uint8_t*>(_MEMORY + ROM_INIT)) << '\n';
    * std::cout << *reinterpret_cast<int*>(_MEMORY + ROM_INIT + 1) << '\n';
    *
+   *
+   *
+   * std::cout << std::hex;
+
+   * std::cout << static_cast<int>(_ROM[0]) << '\n';
+   * std::cout << static_cast<int>(_ROM[1]) << '\n';
+   * std::cout << static_cast<int>(_ROM[2]) << '\n';
+   * exit(EXIT_FAILURE);
    */
 }

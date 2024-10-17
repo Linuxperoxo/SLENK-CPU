@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 16/10/2024                    |
+ *    |  SRC MOD   : 17/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -87,67 +87,59 @@ int main(int argc, char** argv)
   _ram->load_rom(argv[1]);
 
   /*
+   * 
+   * Essa parte eu usei quando não tinhamos a função "_ram->load_rom(argv[1]);"
    *
-   *  Escrevendo a ROM
+   * _cpu->write(ROM_INIT, 0x08); Escrevendo a instrução PTR no início da rom(0x8000) 
    *
-   */
-
-  //_cpu->write(ROM_INIT, 0x08); // Escrevendo a instrução PTR no início da rom(0x8000) 
-  
-  /*
    *
    *  Os caracteres que serão impressos com a instrução PRT
    *
-   */
-
-  /*
-  _cpu->write(ROM_INIT + 1,  'H');
-  _cpu->write(ROM_INIT + 2,  'E');
-  _cpu->write(ROM_INIT + 3,  'L');
-  _cpu->write(ROM_INIT + 4,  'L');
-  _cpu->write(ROM_INIT + 5,  'O');
-  _cpu->write(ROM_INIT + 6,  ',');
-  _cpu->write(ROM_INIT + 7,  ' ');
-  _cpu->write(ROM_INIT + 8,  'W');
-  _cpu->write(ROM_INIT + 9,  'O');
-  _cpu->write(ROM_INIT + 10, 'R');
-  _cpu->write(ROM_INIT + 11, 'L');
-  _cpu->write(ROM_INIT + 12, 'D');
-  _cpu->write(ROM_INIT + 13, '!');
-  _cpu->write(ROM_INIT + 14, '\n');
-  */
-
-  /*
+   *
+   * _cpu->write(ROM_INIT + 1,  'H');
+   * _cpu->write(ROM_INIT + 2,  'E');
+   * _cpu->write(ROM_INIT + 3,  'L');
+   * _cpu->write(ROM_INIT + 4,  'L');
+   * _cpu->write(ROM_INIT + 5,  'O');
+   * _cpu->write(ROM_INIT + 6,  ',');
+   * _cpu->write(ROM_INIT + 7,  ' ');
+   * _cpu->write(ROM_INIT + 8,  'W');
+   * _cpu->write(ROM_INIT + 9,  'O');
+   * _cpu->write(ROM_INIT + 10, 'R');
+   * _cpu->write(ROM_INIT + 11, 'L');
+   * _cpu->write(ROM_INIT + 12, 'D');
+   * _cpu->write(ROM_INIT + 13, '!');
+   * _cpu->write(ROM_INIT + 14, '\n');
+   *
+   *
    *
    * Escrevendo uma instrução de JMP para o endereço 0x803d
    *
-   */
-
-  //_cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
-  //_cpu->write(ROM_INIT + 16, 0x80);
-  //_cpu->write(ROM_INIT + 17, 0x3d); 
-
-  /*
+   *
+   * _cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
+   * _cpu->write(ROM_INIT + 16, 0x80);
+   * _cpu->write(ROM_INIT + 17, 0x3d); 
+   *
    *
    * Testando instrução MOV
    *
+   *
+   *
+   * _cpu->write(ROM_INIT + 0x3d, 0x06); // Instrução MOV4
+   * _cpu->write(ROM_INIT + 0x3e, 0x00);
+   * _cpu->write(ROM_INIT + 0x3f, 0x80);
+   * _cpu->write(ROM_INIT + 0x40, 0x01);
+   * _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
+   * _cpu->write(ROM_INIT + 0x42, 0x80);
+   * _cpu->write(ROM_INIT + 0x43, 0x00);
+   * 
    */
-
-  /*
-  _cpu->write(ROM_INIT + 0x3d, 0x06); // Instrução MOV4
-  _cpu->write(ROM_INIT + 0x3e, 0x00);
-  _cpu->write(ROM_INIT + 0x3f, 0x80);
-  _cpu->write(ROM_INIT + 0x40, 0x01);
-  _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
-  _cpu->write(ROM_INIT + 0x42, 0x80);
-  _cpu->write(ROM_INIT + 0x43, 0x00);
-  */
 
   /*
    *
    *  Simulando um clock simples
    *
-  */
+   */
 
   _cpu->_I = 0;
 
@@ -161,7 +153,7 @@ int main(int argc, char** argv)
       }
     }
     _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz        
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz  
   }
 
   _cpu->~CPU();

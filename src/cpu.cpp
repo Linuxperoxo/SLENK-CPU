@@ -192,7 +192,7 @@ NONE CPU::JMP(CPU::INSTRUCTION* _instruct) noexcept
   BYTE2();
 
   _PC = 0;
-
+  
   _PC = (_PC | _Y) << 8;
   _PC = (_PC | _F);
 }

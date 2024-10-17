@@ -13,4 +13,4 @@ EXEMPLO:
          cd ../build/bin/
          ./CPU ../../ROM/'Hello, World.rom'
 
-Com isso o programa será executado 
+Com isso o programa será executado! :D

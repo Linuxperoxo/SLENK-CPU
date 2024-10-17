@@ -151,8 +151,6 @@ int main(int argc, char** argv)
 
   _cpu->_I = 0;
 
-  uint8_t i { 0 };
-
   while(true)
   {
     if(_cpu->_I == 0)
@@ -164,7 +162,6 @@ int main(int argc, char** argv)
     }
     _cpu->run(); // 1 ciclo
     std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz        
-    if(i < 2) _cpu->_B = 1;
   }
 
   _cpu->~CPU();

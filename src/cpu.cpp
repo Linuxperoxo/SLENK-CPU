@@ -31,6 +31,8 @@
 
 #define ROM_INIT 0x8000
 
+#define BRK_INSTRUCTION_OPCODE 0x09
+
 constexpr uint16_t CLOCK_FREC {1000000000 / 1790000 };
 
 CPU::CPU(BUS* _bus_to_link) noexcept
@@ -79,6 +81,12 @@ NONE CPU::sts() noexcept
   std::cout << std::dec;
 }
 
+/*
+ *
+ * Funções Legais >:)
+ *
+ */
+
 NONE CPU::linkbus(BUS* _bus) noexcept
 {
   if(_BUS == nullptr) { _BUS = _bus; }
@@ -94,15 +102,23 @@ NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
   _X = _BUS->read(_data_to_read);  
 }
 
+/*
+ *
+ * Função que representa 1 Ciclo
+ *
+ */
+
 NONE CPU::run() noexcept
 {
   read(_PC); // Lendo a memória que o registrador PC está apontando, essa  memória será armazenada no registrador _X
+
+  if(_X > OPCODE_NUM - 1 || _X < 0) { _X = BRK_INSTRUCTION_OPCODE; } // Vendo se é uma instrução válida, caso não, vamos ter uma instrução de BRK
 
 #if defined(CPU_LOG)
   sts(); // Mostrando informações de execução
 #endif
   
-  (this->*_opcode[_X]._instruct_ptr)(&_opcode[_X]); // Executando a instrução
+  (this->*_opcode[_X]._instruct_ptr)(); // Executando a instrução
 }
 
 /*
@@ -135,7 +151,7 @@ NONE CPU::BYTE3() noexcept
  *
  */
 
-NONE CPU::RST(CPU::INSTRUCTION*) noexcept
+NONE CPU::RST() noexcept
 {
   /*
    *
@@ -162,7 +178,7 @@ NONE CPU::RST(CPU::INSTRUCTION*) noexcept
  *
  */
 
-NONE CPU::ADD(CPU::INSTRUCTION*) noexcept
+NONE CPU::ADD() noexcept
 {
   std::cout << "ADD\n";
   ++_PC;
@@ -174,7 +190,7 @@ NONE CPU::ADD(CPU::INSTRUCTION*) noexcept
  *
  */
 
-NONE CPU::SUB(CPU::INSTRUCTION*) noexcept
+NONE CPU::SUB() noexcept
 {
   std::cout << "SUB\n";
   ++_PC;
@@ -186,7 +202,7 @@ NONE CPU::SUB(CPU::INSTRUCTION*) noexcept
  *
  */
 
-NONE CPU::JMP(CPU::INSTRUCTION* _instruct) noexcept
+NONE CPU::JMP() noexcept
 {
   BYTE1();
   BYTE2();
@@ -203,7 +219,7 @@ NONE CPU::JMP(CPU::INSTRUCTION* _instruct) noexcept
  *
  */
 
-NONE CPU::POP(CPU::INSTRUCTION*) noexcept
+NONE CPU::POP() noexcept
 {
   read(_STKPTR);
   _H = _X;
@@ -221,7 +237,7 @@ NONE CPU::POP(CPU::INSTRUCTION*) noexcept
  *
  */
 
-NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
+NONE CPU::PSH() noexcept
 { 
   if(_STKPTR -1 >= 0x00)
   {
@@ -239,7 +255,7 @@ NONE CPU::PSH(CPU::INSTRUCTION*) noexcept
  *
  */
 
-NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
+NONE CPU::PRT() noexcept
 { 
   BYTE1();
 
@@ -260,11 +276,22 @@ NONE CPU::PRT(CPU::INSTRUCTION* _instruct) noexcept
 
 /*
  *
+ * INSTRUCTION BRK:
+ *
+ */
+
+NONE CPU::BRK() noexcept
+{
+  _B = 1;
+}
+
+/*
+ *
  * INSTRUCTION MOV: 
  *
  */
 
-NONE CPU::MOV(CPU::INSTRUCTION* _instruct) noexcept
+NONE CPU::MOV() noexcept
 {
   BYTE1();
   BYTE2();
@@ -274,7 +301,7 @@ NONE CPU::MOV(CPU::INSTRUCTION* _instruct) noexcept
   _PC += 3;
 }
 
-NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
+NONE CPU::MOV2() noexcept
 {
   BYTE1();
   BYTE2();
@@ -284,7 +311,7 @@ NONE CPU::MOV2(CPU::INSTRUCTION* _instruct) noexcept
   _PC += 3;
 }
 
-NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
+NONE CPU::MOV3() noexcept
 {
   BYTE1();
   BYTE2();
@@ -299,11 +326,11 @@ NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
 
   _H = _PC;
 
-  PSH(nullptr);
+  PSH();
 
   _H = (_PC >> 8);
 
-  PSH(nullptr);
+  PSH();
 
   _PC = 0;
   _PC = (_PC | _F) << 8;
@@ -313,19 +340,19 @@ NONE CPU::MOV3(CPU::INSTRUCTION* _instruct) noexcept
 
   *_regcode[_Y] = _X;
 
-  POP(nullptr);
+  POP();
  
   _PC = 0;
   _PC = (_PC | _H) << 8;
  
-  POP(nullptr);
+  POP();
 
   _PC = (_PC | _H);
 
   _PC += 4;  
 }
 
-NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
+NONE CPU::MOV4() noexcept
 {
   BYTE1();
   BYTE2();
@@ -333,11 +360,11 @@ NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
 
   _H = _PC;
 
-  PSH(nullptr);
+  PSH();
 
   _H = (_PC >> 8);
   
-  PSH(nullptr);
+  PSH();
 
   _PC = 0;
   _PC = (_PC | _F) << 8;
@@ -345,14 +372,15 @@ NONE CPU::MOV4(CPU::INSTRUCTION*) noexcept
 
   write(_PC, *_regcode[_Y]);
 
-  POP(nullptr);
+  POP();
 
   _PC = 0;
   _PC = (_PC | _H) << 8;
 
-  POP(nullptr);
+  POP();
 
   _PC = (_PC | _H);
 
   _PC += 4;
 }
+

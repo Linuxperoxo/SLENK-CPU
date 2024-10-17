@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 14/10/2024                    | 
+ *    |  SRC MOD   : 17/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -163,7 +163,7 @@ public:
   struct INSTRUCTION
   {
     std::string     _name; // nome da instrução que vai aparecer no LOG
-    NONE            (CPU::*_instruct_ptr)(INSTRUCTION*); // Ponteiro para função 
+    NONE            (CPU::*_instruct_ptr)(); // Ponteiro para função 
   };
 
   /*
@@ -210,7 +210,7 @@ public:
   {
     {"RST", &CPU::RST}, {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
     {"MOV", &CPU::MOV}, {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
-    {"PRT", &CPU::PRT},
+    {"PRT", &CPU::PRT}, {"BRK", &CPU::BRK}
   };
 
   /*
@@ -238,7 +238,7 @@ public:
    * OPCODES:
    *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
    *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
-   *  PRT : 0x08
+   *  PRT : 0x08   BRK : 0x09
    *
    */
 
@@ -294,14 +294,15 @@ private:
    *
    */
 
-  NONE RST(CPU::INSTRUCTION*) noexcept; // Reseta o processador, modificando o PC e STKPTR
-  NONE ADD(CPU::INSTRUCTION*) noexcept; // Soma
-  NONE SUB(CPU::INSTRUCTION*) noexcept; // Subtração
-  NONE JMP(CPU::INSTRUCTION*) noexcept; // Pula PC para um endereço de memória 
-  NONE POP(CPU::INSTRUCTION*) noexcept; // Desempilha elemento da stack 
-  NONE PSH(CPU::INSTRUCTION*) noexcept; // Empilha elemento na stack
-  NONE PRT(CPU::INSTRUCTION*) noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
-  
+  NONE RST() noexcept; // Reseta o processador, modificando o PC e STKPTR
+  NONE ADD() noexcept; // Soma
+  NONE SUB() noexcept; // Subtração
+  NONE JMP() noexcept; // Pula PC para um endereço de memória 
+  NONE POP() noexcept; // Desempilha elemento da stack 
+  NONE PSH() noexcept; // Empilha elemento na stack
+  NONE PRT() noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
+  NONE BRK() noexcept; // Interrompe execução do programa
+
   /*
    *
    * Nesse caso a instrução MOV vai ter 4 variações
@@ -320,7 +321,7 @@ private:
    *
    */
 
-  NONE MOV(CPU::INSTRUCTION*) noexcept; NONE MOV2(CPU::INSTRUCTION*) noexcept; NONE MOV3(CPU::INSTRUCTION*) noexcept; NONE MOV4(CPU::INSTRUCTION*) noexcept;
+  NONE MOV() noexcept; NONE MOV2() noexcept; NONE MOV3() noexcept; NONE MOV4() noexcept;
 
 
   /*

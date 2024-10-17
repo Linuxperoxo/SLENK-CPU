@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 14/10/2024                    |
+ *    |  SRC MOD   : 16/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *

@@ -32,12 +32,13 @@ Para compilar e executar o projeto, siga os passos abaixo:
 
 3. Compile o projeto:
     ```bash
-    ./make.sh
+    ./make.sh build
     ```
 
 4. Execute o projeto:
     ```bash
-    ./make.sh run
+    cd build/bin/
+    ./CPU ../../ROM/Hello, World.rom
     ```
 
 ## Documentação

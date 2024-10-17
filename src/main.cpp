@@ -84,14 +84,15 @@ int main(int argc, char** argv)
   new(_ram) RAM();
   new(_cpu) CPU(_bus);
 
+  _ram->load_rom(argv[1]);
+
   /*
    *
    *  Escrevendo a ROM
    *
    */
 
-  
-  _cpu->write(ROM_INIT, 0x08); // Escrevendo a instrução PTR no início da rom(0x8000) 
+  //_cpu->write(ROM_INIT, 0x08); // Escrevendo a instrução PTR no início da rom(0x8000) 
   
   /*
    *
@@ -99,6 +100,7 @@ int main(int argc, char** argv)
    *
    */
 
+  /*
   _cpu->write(ROM_INIT + 1,  'H');
   _cpu->write(ROM_INIT + 2,  'E');
   _cpu->write(ROM_INIT + 3,  'L');
@@ -113,6 +115,7 @@ int main(int argc, char** argv)
   _cpu->write(ROM_INIT + 12, 'D');
   _cpu->write(ROM_INIT + 13, '!');
   _cpu->write(ROM_INIT + 14, '\n');
+  */
 
   /*
    *
@@ -120,9 +123,9 @@ int main(int argc, char** argv)
    *
    */
 
-  _cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
-  _cpu->write(ROM_INIT + 16, 0x80);
-  _cpu->write(ROM_INIT + 17, 0x3d); 
+  //_cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
+  //_cpu->write(ROM_INIT + 16, 0x80);
+  //_cpu->write(ROM_INIT + 17, 0x3d); 
 
   /*
    *
@@ -130,6 +133,7 @@ int main(int argc, char** argv)
    *
    */
 
+  /*
   _cpu->write(ROM_INIT + 0x3d, 0x06); // Instrução MOV4
   _cpu->write(ROM_INIT + 0x3e, 0x00);
   _cpu->write(ROM_INIT + 0x3f, 0x80);
@@ -137,6 +141,7 @@ int main(int argc, char** argv)
   _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
   _cpu->write(ROM_INIT + 0x42, 0x80);
   _cpu->write(ROM_INIT + 0x43, 0x00);
+  */
 
   /*
    *
@@ -145,6 +150,8 @@ int main(int argc, char** argv)
   */
 
   _cpu->_I = 0;
+
+  uint8_t i { 0 };
 
   while(true)
   {
@@ -156,7 +163,8 @@ int main(int argc, char** argv)
       }
     }
     _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz      
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz        
+    if(i < 2) _cpu->_B = 1;
   }
 
   _cpu->~CPU();

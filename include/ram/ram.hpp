@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 11/10/2024                    |
+ *    |  SRC MOD   : 16/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -75,6 +75,7 @@ private:
 private:
 
   uint8_t* _MEMORY;
+  uint8_t* _ROM;
 
 public:
 
@@ -107,6 +108,20 @@ private:
  */
 
   inline NONE           write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
+
+public:
+
+  /*
+   *
+   * @info : Essa função lê binário string e carrega na memória para a rom
+   *
+   * @return : void
+   *
+   * @param : Recebe o arquivo da rom
+   *
+   */
+
+  NONE load_rom(const char*) noexcept;
 
   friend class BUS;
 };

@@ -1,0 +1,16 @@
+Aqui você pode criar seus primeiros programas para esse microprocessador.
+
+O arquivo .cpp serve para você ver caracteres em binário caso precise, já que não fiz um compilador ainda.
+
+O programa deve ser inteiramente feito em binário, use o arquivom .rom como exemplo, não use espaços entre os bits,
+não quebre linha, apenas escreva de forma ordenada e em linha única.
+
+Logo que você escrever seu programa você pode compilar o projeto e ir em ../build/bin/, lá estará seu binário.
+
+Para executar seu programa você deve ir para ../build/bin/ e executar o binário passando a localização da sua rom.
+
+EXEMPLO: 
+         cd ../build/bin/
+         ./CPU ../../ROM/'Hello, World.rom'
+
+Com isso o programa será executado 

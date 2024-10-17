@@ -16,10 +16,11 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <sys/mman.h>
+#include <sys/mman.h> // mmap()
 #include <iostream>
-#include <fcntl.h>
-#include <unistd.h>
+#include <fcntl.h> // open()
+#include <unistd.h> // close()
+#include <sys/stat.h> // fstat()
 
 #include "../include/ram/ram.hpp"
 
@@ -65,9 +66,25 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
     exit(EXIT_FAILURE);
   }
 
+  struct stat* _rom_file_info { new struct stat()};
+
+  if(fstat(_file, _rom_file_info) == -1)
+  {
+    std::cout << "Error to get file infos -> " << _rom_file << '\n';
+    exit(EXIT_FAILURE);
+  }
+
+  if(_rom_file_info->st_size > _ROM_MAX_SIZE)
+  {
+    std::cout << "ROM file -> " << _rom_file << " is very long he has " << _rom_file_info->st_size << "Bytes of size, he most have at most " << _ROM_MAX_SIZE << '\n';
+    exit(EXIT_FAILURE);
+  }
+
+  uint32_t _rom_file_size { static_cast<uint32_t>(_rom_file_info->st_size) };
+
   uint8_t* _ROM_BUFFER
   {
-    static_cast<uint8_t*>(mmap(nullptr, _ROM_MAX_SIZE, PROT_READ, MAP_PRIVATE, _file, 0))
+    static_cast<uint8_t*>(mmap(nullptr, _rom_file_size, PROT_READ, MAP_PRIVATE, _file, 0))
   };
 
   if(_ROM_BUFFER == MAP_FAILED)
@@ -76,26 +93,18 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
     exit(EXIT_FAILURE);
   }
 
+  delete _rom_file_info;
   close(_file);
 
-  uint8_t _byte { 0 }; // Aqui onde vamos carregar o byte do arquivo
+  uint8_t _byte { 0 }; // Aqui onde vamos mover cada "bit" do arquivo  
   uint8_t _bits { 0 }; // Vendo quantos bits nos copiamos
   uint8_t _flip { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
 
-  for(uint32_t _i { 0 }; _i < BYTE * 32; _i++, _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
+  for(; _bits < _rom_file_size; _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
   {
-
-    /*
-     *
-     * Aqui convertemos as strings '0', '1' do arquivo rom em numeral
-     *
-     */
-
     if(_bits % 8 == 0 && _bits > 0)
     {
-      //std::cout << "BYTE" << '\n';
-      //std::cout << "INDEX : " << _bits / 7 - 1 << '\n';
-      
+
       /*
        *
        * Quando copiamos 1 byte do arquivo jogamos esse byte para a memória da rom
@@ -106,15 +115,20 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
       _byte                 = 0;
       _flip                 = 0;
     }
+    
+    /*
+     *
+     * Aqui convertemos as strings '0', '1' do arquivo rom em numeral 0, 1
+     *
+     */
 
-    _byte = _byte | (_ROM_BUFFER[_i] - '0') << (7 - _flip);
-
-    //std::cout << static_cast<int>(_ROM_BUFFER[_i] - '0') << " FLIP " << static_cast<int>(7 - _flip) << " BITS COUNTER : " << static_cast<int>(_i) << '\n';
+    _byte = _byte | (_ROM_BUFFER[_bits] - '0') << (7 - _flip);
   }
 
   munmap(_ROM_BUFFER, _ROM_MAX_SIZE);
 
   /*
+   *
    * ÁREA DEBUG:
    *
    * Pequenos testes xD
@@ -131,5 +145,6 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
    * std::cout << static_cast<int>(_ROM[1]) << '\n';
    * std::cout << static_cast<int>(_ROM[2]) << '\n';
    * exit(EXIT_FAILURE);
+   *
    */
 }

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 17/10/2024                    |
+ *    |  SRC MOD   : 18/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -283,6 +283,30 @@ NONE CPU::PRT() noexcept
 NONE CPU::BRK() noexcept
 {
   _B = 1;
+}
+
+/*
+ *
+ * INSTRUCTION INC/DEC:
+ *
+ */
+
+NONE CPU::INC() noexcept
+{
+  BYTE1();
+
+  *_regcode[_Y] += 1;
+  
+  _PC += 3;
+}
+
+NONE CPU::DEC() noexcept
+{
+  BYTE1();
+
+  *_regcode[_Y] -= 1;
+
+  _PC += 3;
 }
 
 /*

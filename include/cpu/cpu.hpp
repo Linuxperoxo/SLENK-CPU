@@ -322,6 +322,8 @@ private:
   NONE PSH() noexcept; // Empilha elemento na stack
   NONE PRT() noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
   NONE BRK() noexcept; // Interrompe execução do programa
+  NONE INC() noexcept; // Incrementa 1 a um registrador
+  NONE DEC() noexcept; // Decrementa 1 a um registrador
 
   /*
    *

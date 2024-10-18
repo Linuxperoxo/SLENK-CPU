@@ -40,12 +40,12 @@ RAM::RAM() noexcept
   _MEMORY     = static_cast<uint8_t*>(mmap(nullptr, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
   _ROM        = static_cast<uint8_t*>(_MEMORY + ROM_INIT);
   
-  if(_MEMORY == MAP_FAILED || _ROM == MAP_FAILED)
+  if(_MEMORY == MAP_FAILED)
   {
     std::cout << "Error to alloc memory for class RAM\n";
     exit(EXIT_FAILURE);
   }
-  std::memset(_MEMORY, 0x00, MEMORY_SIZE); 
+  std::memset(_MEMORY, 0x00, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
 }
 
 RAM::~RAM() noexcept
@@ -57,7 +57,7 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
 {
   int _file
   {
-    open(_rom_file, O_RDONLY)
+    open(_rom_file, O_RDONLY) // Abrindo arquivo para apenas escrita
   };
 
   if(_file == -1)
@@ -66,13 +66,26 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
     exit(EXIT_FAILURE);
   }
 
-  struct stat* _rom_file_info { new struct stat()};
+  /*
+   *
+   * Usamos a função fstat para pegar o tamanho da ROM 
+   *
+   */
 
-  if(fstat(_file, _rom_file_info) == -1)
+  struct stat* _rom_file_info { new struct stat()}; // Struct necessária para guardar informações do arquivo
+
+  if(fstat(_file, _rom_file_info) == -1) // Pegando as informações e verificando se ocorreu algum problema
   {
     std::cout << "Error to get file infos -> " << _rom_file << '\n';
     exit(EXIT_FAILURE);
   }
+
+  /*
+   *
+   * Aqui fiz uma pequena verificação para ver se o tamanho do arquivo não é maior que o tamanho
+   * máximo que no caso é de 0x8000 até 0xFFFF 
+   *
+   */
 
   if(_rom_file_info->st_size > _ROM_MAX_SIZE)
   {
@@ -80,10 +93,24 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
     exit(EXIT_FAILURE);
   }
 
+  /*
+   *
+   * Como eu so quero saber o tamanho do arquivo, apenas armazeno o tamanho em uma variável para poder fechar
+   * arquivo já que ele vai ser mapeado na memória
+   *
+   */
+
   uint32_t _rom_file_size { static_cast<uint32_t>(_rom_file_info->st_size) };
 
   uint8_t* _ROM_BUFFER
   {
+    /*
+     * 
+     * Mapeado arquivo na memória com permissão de apenas escrita e privado, ou seja, qualquer alteração no seu 
+     * conteúdo não vai ser escrito no arquivo
+     *
+     */
+    
     static_cast<uint8_t*>(mmap(nullptr, _rom_file_size, PROT_READ, MAP_PRIVATE, _file, 0))
   };
 
@@ -92,6 +119,12 @@ NONE RAM::load_rom(const char* _rom_file) noexcept
     std::cout << "Error to alloc memory for ROM BUFFER\n";
     exit(EXIT_FAILURE);
   }
+
+  /*
+   *
+   * Já mapeamos o arquivo na memória então podemos fecha-ló
+   *
+   */
 
   delete _rom_file_info;
   close(_file);

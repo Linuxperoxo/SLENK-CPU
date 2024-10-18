@@ -291,6 +291,13 @@ NONE CPU::BRK() noexcept
  *
  */
 
+/*
+ *
+ * Usamos o 1 byte após a instrução para definir qual registrador
+ * será incrementado
+ *
+ */
+
 NONE CPU::INC() noexcept
 {
   BYTE1();
@@ -312,7 +319,7 @@ NONE CPU::DEC() noexcept
 /*
  *
  * INSTRUCTION MOV: 
- *
+ * 
  */
 
 NONE CPU::MOV() noexcept

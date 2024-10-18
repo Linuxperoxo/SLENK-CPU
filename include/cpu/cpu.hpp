@@ -33,23 +33,32 @@
  *  |  CPU   |----> | CONTROL BUS |------> | ADDRS DECODER |-------------+         |
  *  |        |      |             |        |               |             |         |
  *  +--------+      +-------------+        +---------------+             |         |
- *      |                  |                       ^                     |         |
- *      |           +-------------+                |               +-----------+   |
- *      |           |             |                |               |  I/O DEV  |   |
- *      +---------> |  ADDRS BUS  |----------------+               +-----------+   |
- *                  |             |                                      | ^       |
- *                  +-------------+                                      | |       |
- *                         |                                             | |       |
- *                         |                                             | |       |
- *                         |                                             | |       |
- *                  +-------------+                                      | |       |
- *                  |     DMA     | <------------------------------------+ |       |
- *                  | CONTROLLER  | ----------------------------------------       |
+ *    ^ |                  |                       ^                     |         |
+ *    | |           +-------------+                |               +-----------+   |
+ *    | |           |             |                |               |  I/O DEV  |   |
+ *    | +---------> |  ADDRS BUS  |----------------+               +-----------+   |
+ *    | |           |             |                                      | ^       |
+ *    | |           +-------------+                                      | |       |
+ *    | |                  |                                             | |       |
+ *    | |                  | CONECTADO A TODOS OS BARRAMENTOS            | |       |
+ *    | |                  |                                             | |       |
+ *    | |           +-------------+                                      | |       |
+ *    | +---------> |     DMA     | <------------------------------------+ |       |
+ *    +------------ | CONTROLLER  | ----------------------------------------       |
  *                  +-------------+                                                |
  *                        |                                                        |
  *                        |                                                        |
  *                        +--------------------------------------------------------+
- *                        
+ * 
+ * DMA: Ele é responsável por fazer um device I/O ter acesso direto a memória sem
+ * envolver o processador no meio. OBS: Quando o DMA está sendo usado ele emite uma
+ * interrupção ao processador, não deixando-o acessar o barramento, mas o processador 
+ * vai ter o cache para poder acessar dados
+ *
+ * ADDRS DECODER: Ele faz a "tradução" do endereço enviado pelo barramento de endereço,
+ * ele verifica se o endereço é para um dispositivo mapeado na memória ou é acesso a memória,
+ * assim enviando dados ou lendo para memória ou I/O DEV
+ *
  * ALU: Componente que realiza todas as operações matemáticas e 
  * lógicas, como adição, subtração, operações lógicas (AND, OR, NOT).
  *

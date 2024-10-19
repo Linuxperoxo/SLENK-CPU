@@ -14,8 +14,8 @@
  */
 
 #include <cctype>
-#include <cstdint>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
 
 #include "../include/cpu/cpu.hpp"
@@ -23,17 +23,11 @@
 
 #define FIRST_ADDRS_TO_READ_INSTRUCTION 0xFFFD
 #define FIRST_INSTRUCTION_OPCODE 0x00
-
 #define SEC_ADDRS_TO_READ_INSTRUCTION 0xFFFE
 #define SEC_INSTRUCTION_OPCODE 0x01
-
 #define FIRST_ADDRS_STACK_PTR 0xFF
-
 #define ROM_INIT 0x8000
-
 #define BRK_INSTRUCTION_OPCODE 0x09
-
-constexpr uint16_t CLOCK_FREC {1000000000 / 1790000 };
 
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
@@ -57,7 +51,7 @@ CPU::CPU(BUS* _bus_to_link) noexcept
    *
    */
 
-  write(SEC_ADDRS_TO_READ_INSTRUCTION + 1, 0x80); 
+  write(SEC_ADDRS_TO_READ_INSTRUCTION + 1, 0x80);
   run(); // Segundo ciclo
 }
 
@@ -71,9 +65,9 @@ CPU::CPU(BUS* _bus_to_link) noexcept
  *
  */
 
-NONE CPU::sts() noexcept
+NONE CPU::sts(INSTRUCTION* _instruct) noexcept
 {
-  std::cout << "INSTRUCTION : \"" << _opcode[_X]._name << "\" "
+  std::cout << "INSTRUCTION : \"" << _instruct->_name << "\" "
             << "PC ADDRS: \"0x" << std::hex << _PC << "\" "
             << "STACK ADDRS: \"0x" << std::hex << static_cast<int>(_STKPTR) << "\"" 
             << '\n';
@@ -97,9 +91,9 @@ NONE CPU::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) 
   _BUS->write(_addrs_to_write, _data_to_write);
 }
 
-NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
+DATA_BITS_SIZE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
 {
-  _X = _BUS->read(_data_to_read);  
+  return _BUS->read(_data_to_read);  
 }
 
 /*
@@ -110,15 +104,16 @@ NONE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
 
 NONE CPU::run() noexcept
 {
-  read(_PC); // Lendo a memória que o registrador PC está apontando, essa  memória será armazenada no registrador _X
+  INSTRUCTION* _instruction
+  {
+    instruction_decoder(read(_PC)) // Esse read está lendo o endereço que o _PC aponta
+  };
 
-  if(_X > OPCODE_NUM - 1 || _X < 0) { _X = BRK_INSTRUCTION_OPCODE; } // Vendo se é uma instrução válida, caso não, vamos ter uma instrução de BRK
+  #if defined(CPU_LOG)
+    sts(_instruction); // Mostrando informações de execução
+  #endif
 
-#if defined(CPU_LOG)
-  sts(); // Mostrando informações de execução
-#endif
-  
-  (this->*_opcode[_X]._instruct_ptr)(); // Executando a instrução
+  (this->*_instruction->_instruct_ptr)(); // Executando instrução selecionada pelo instruction decoder  
 }
 
 /*
@@ -127,22 +122,19 @@ NONE CPU::run() noexcept
  *
  */
 
-NONE CPU::BYTE1() noexcept
-{  
-  read(_PC + 1);
-  _Y = _X;
+DATA_BITS_SIZE CPU::BYTE1() noexcept
+{   
+  return read(_PC + 1);
 }
 
-NONE CPU::BYTE2() noexcept
+DATA_BITS_SIZE CPU::BYTE2() noexcept
 {
-  read(_PC + 2);
-  _F = _X;
+  return read(_PC + 2);
 }
 
-NONE CPU::BYTE3() noexcept
+DATA_BITS_SIZE CPU::BYTE3() noexcept
 {
-  read(_PC + 3);
-  _Q = _X;
+  return read(_PC + 3);
 }
 
 /*
@@ -162,8 +154,7 @@ NONE CPU::RST() noexcept
   _A      = 0x00;
   _X      = 0x00;
   _Y      = 0x00;
-  _F      = 0x00;
-  _H      = 0x00;
+  _S      = 0x00;
   _STKPTR = FIRST_ADDRS_STACK_PTR;
   _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION; 
   
@@ -204,13 +195,10 @@ NONE CPU::SUB() noexcept
 
 NONE CPU::JMP() noexcept
 {
-  BYTE1();
-  BYTE2();
-
-  _PC = 0;
+  uint16_t _buffer = (_buffer | BYTE1()) << 8;
+  _buffer          = (_buffer | BYTE2());
   
-  _PC = (_PC | _Y) << 8;
-  _PC = (_PC | _F);
+  _PC = _buffer;
 }
 
 /*
@@ -221,8 +209,7 @@ NONE CPU::JMP() noexcept
 
 NONE CPU::POP() noexcept
 {
-  read(_STKPTR);
-  _H = _X;
+  _S = read(_STKPTR);
 
   if(_STKPTR + 1 <= FIRST_ADDRS_STACK_PTR)
   {
@@ -244,7 +231,7 @@ NONE CPU::PSH() noexcept
     --_STKPTR;
   }
 
-  write(_STKPTR, _H);
+  write(_STKPTR, _S);
 
   ++_PC;
 }
@@ -257,7 +244,7 @@ NONE CPU::PSH() noexcept
 
 NONE CPU::PRT() noexcept
 { 
-  BYTE1();
+  _Y = BYTE1();
 
   ++_PC;
 
@@ -265,7 +252,7 @@ NONE CPU::PRT() noexcept
   {  
     std::cout << _Y;
 
-    BYTE1();
+    _Y = BYTE1();
       
     ++_PC;
   }
@@ -300,18 +287,14 @@ NONE CPU::BRK() noexcept
 
 NONE CPU::INC() noexcept
 {
-  BYTE1();
-
-  *_regcode[_Y] += 1;
+  *register_decoder(BYTE1()) += 1;
   
   _PC += 3;
 }
 
 NONE CPU::DEC() noexcept
 {
-  BYTE1();
-
-  *_regcode[_Y] -= 1;
+  *register_decoder(BYTE1()) -= 1;
 
   _PC += 3;
 }
@@ -324,93 +307,38 @@ NONE CPU::DEC() noexcept
 
 NONE CPU::MOV() noexcept
 {
-  BYTE1();
-  BYTE2();
-
-  *_regcode[_Y] = _F;
+  *register_decoder(BYTE1()) = BYTE2();
 
   _PC += 3;
 }
 
 NONE CPU::MOV2() noexcept
 {
-  BYTE1();
-  BYTE2();
-
-  *_regcode[_Y] = *_regcode[_F];
+  *register_decoder(BYTE1()) = *register_decoder(BYTE2());
 
   _PC += 3;
 }
 
 NONE CPU::MOV3() noexcept
 {
-  BYTE1();
-  BYTE2();
-  BYTE3();
+  uint16_t _buffer;
 
-  /*
-   *
-   * Decidi usar a stack tanto para Instrução quando para a MOV4, eu poderia simplificar muito isso, 
-   * mas quis deixar assim para ser mais "fiel", compensa o overhead adicional
-   *
-   */
+  _buffer = (_buffer | BYTE2()) << 8;
+  _buffer = (_buffer | BYTE3());
 
-  _H = _PC;
-
-  PSH();
-
-  _H = (_PC >> 8);
-
-  PSH();
-
-  _PC = 0;
-  _PC = (_PC | _F) << 8;
-  _PC = (_PC | _Q);
-
-  read(_PC);
-
-  *_regcode[_Y] = _X;
-
-  POP();
- 
-  _PC = 0;
-  _PC = (_PC | _H) << 8;
- 
-  POP();
-
-  _PC = (_PC | _H);
+  *register_decoder(BYTE1()) = read(_buffer);
 
   _PC += 4;  
 }
 
 NONE CPU::MOV4() noexcept
 {
-  BYTE1();
-  BYTE2();
-  BYTE3();
+  uint16_t _buffer;
 
-  _H = _PC;
+  _buffer = (_buffer | BYTE2()) << 8;
+  _buffer = (_buffer | BYTE3());
 
-  PSH();
-
-  _H = (_PC >> 8);
-  
-  PSH();
-
-  _PC = 0;
-  _PC = (_PC | _F) << 8;
-  _PC = (_PC | _Q);
-
-  write(_PC, *_regcode[_Y]);
-
-  POP();
-
-  _PC = 0;
-  _PC = (_PC | _H) << 8;
-
-  POP();
-
-  _PC = (_PC | _H);
+  write(_buffer, *register_decoder(BYTE1()));
 
   _PC += 4;
 }

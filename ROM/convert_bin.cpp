@@ -52,12 +52,12 @@ int main()
    */ 
 
 
-  char _char_to_convert[CHAR_NUM]
+  char _char_to_convert[CHAR_NUM + 2]
   {
-    'H', 'E', 'L', 'L', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
+    'A', 'M', 'O', ' ', 'M', 'I', 'N', 'H', 'A', ' ', 'R', 'O', 'L', '!', '\n'
   };
 
-  for(int i { 0 }; i < CHAR_NUM; i++){
+  for(int i { 0 }; i < CHAR_NUM + 2; i++){
     _byte._byte = _char_to_convert[i];
 
     std::cout << "+-----------------------------+\n" 

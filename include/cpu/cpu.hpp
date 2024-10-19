@@ -71,20 +71,17 @@
 #define __CPU_HPP__
 
 #include <cstdint>
+#include <cstdlib>
+#include <iostream>
 #include <string>
 
+#define REGCODE_NUM 4
 #define OPCODE_NUM 14
-#define REGCODE_NUM 5
-
-#define REG_A 0x00
-#define REG_X 0x01
-#define REG_Y 0x02
-#define REG_H 0x03
-#define REG_Q 0x04
+#define BRK_OPCODE 0x09
 
 #define CPU_LOG // Comente essa linha se não quiser o log de cada instrução
 
-constexpr uint32_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
+constexpr uint16_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
 class BUS;
 
@@ -105,29 +102,23 @@ private:
 
   BUS* _BUS { nullptr };
 
-private:
+public:
 
   /*
    *
    * A      : Usado para armazenar o resultado de operações aritmética;
-   * X      : Uso geral, armazena dados de leitura da memória;
-   * Y      : Uso geral, é usado pela função BYTE1;
-   * F      : Uso geral, é usado pela função BYTE2;
-   * Q      : Uso geral, é usado pela função BYTE3;
-   * H      : Armazena dados da stack, é usado pela instrução POP, joga dados para a stack através da instrução PUH;
+   * X      : Uso geral
+   * Y      : Uso geral, é usado pela instrução PRT, porém PRT é uma instrução temporária
+   * S      : Armazena dados da stack através da instrução POP e joga dados para a stack através da instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço da instrução a ser executada.
    *
    */
 
-public:
-
   DATA_BITS_SIZE  _A      { 0x00 };
   DATA_BITS_SIZE  _X      { 0x00 };
   DATA_BITS_SIZE  _Y      { 0x00 };
-  DATA_BITS_SIZE  _F      { 0x00 };
-  DATA_BITS_SIZE  _Q      { 0x00 };
-  DATA_BITS_SIZE  _H      { 0x00 };
+  DATA_BITS_SIZE  _S      { 0x00 };
   DATA_BITS_SIZE  _STKPTR { 0x00 };
 
   ADDRS_BITS_SIZE _PC     { 0x0000 };
@@ -204,63 +195,73 @@ public:
    *
    * OPCODE:
    *
-   * Agora aqui temos o array de opcodes. O opcode é o código binário que representa uma instrução.
+   * Agora aqui temos o array de OPTABLE. O opcode é o código binário que representa uma instrução.
    * Por exemplo, se o PC (Program Counter) estiver apontando pra 0x0004 na memória e nesse endereço
    * o valor for '0001', esse é o opcode que a CPU vai interpretar como uma instrução.
    *
    * Exemplo:
-   * Se o PC tá em 0x0004 e o valor ali é 0001, isso é um opcode. Aí a gente pega esse opcode e
-   * procura ele no array _opcode pra ver o que é. Se for 'ADD', por exemplo, essa instrução vai
-   * ler o byte seguinte (0x0005) e fazer alguma operação (tipo somar) com o valor desse endereço.
+   * Se o PC tá em 0x0004 e o dado armazenado nesse endereço é 0001, esso é o nosso opcode. Aí a gente 
+   * pega esse opcode e procura ele no array _opcode pra ver o que é. Se for 'ADD', por exemplo, essa 
+   * instrução vai ler o byte seguinte (0x0005) e fazer alguma operação (tipo somar) com o valor desse 
+   * endereço.
    * 
    * O processo geral:
    * 1. A CPU lê o endereço que o PC aponta (0x0004).
    * 2. Interpreta o valor lá como um opcode (0001).
    * 3. Com esse opcode, ela sabe qual instrução executar e segue o resto dos bytes, se necessário.
    * 
-   * A cada opcode, o array _opcode define o que fazer:
+   * A cada opcode, o array OPTABLE define o que fazer:
    * - O nome da instrução (ex.: "ADD").
    * - O ponteiro pra função que executa a instrução.
-   * - O modo de endereçamento, se necessário.
-   * - Qual registrador está envolvido, se for o caso.
    *
    */
 
-  INSTRUCTION _opcode[OPCODE_NUM]
+  inline INSTRUCTION* instruction_decoder(uint8_t _opcode) noexcept
+  { 
+
+    /*
+    *
+    * Esse array _OPTABLE define como cada opcode vai ser tratado. Cada entrada tem:
+    * - O nome da instrução ("RST", "JMP", "POP", etc.).
+    * - Um ponteiro pra função que faz a instrução acontecer (tipo &CPU::ADD).
+    * 
+    */
+    
+    static INSTRUCTION _OPTABLE[OPCODE_NUM]
+    {
+      {"RST", &CPU::RST}, {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
+      {"MOV", &CPU::MOV}, {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
+      {"PRT", &CPU::PRT}, {"BRK", &CPU::BRK}
+    }; 
+    
+    /*
+     *
+     * OPCODES:
+     *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
+     *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
+     *  PRT : 0x08   BRK : 0x09
+     *
+     */
+
+    return _opcode < 0 || _opcode - 1 > OPCODE_NUM ? &_OPTABLE[BRK_OPCODE] : &_OPTABLE[_opcode]; 
+  }
+
+  inline DATA_BITS_SIZE* register_decoder(uint8_t _regcode) noexcept
   {
-    {"RST", &CPU::RST}, {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
-    {"MOV", &CPU::MOV}, {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
-    {"PRT", &CPU::PRT}, {"BRK", &CPU::BRK}
-  };
 
-  /*
-   *
-   * Esse array _opcode define como cada opcode vai ser tratado. Cada entrada tem:
-   * - O nome da instrução ("RST", "JMP", "POP", etc.).
-   * - Um ponteiro pra função que faz a instrução acontecer (tipo &CPU::ADD).
-   * 
-   */
+    /*
+     * 
+     * Agora, o array _regcode armazena os registradores que o processador vai usar.
+     * Cada um deles aponta pra um registrador específico da CPU.
+     *
+     */
 
-  /*
-   *
-   * Agora, o array _regcode armazena os registradores que o processador vai usar.
-   * Cada um deles aponta pra um registrador específico na CPU.
-   *
-   */
-
-  uint8_t* _regcode[REGCODE_NUM]
-  {
-    &_A,  &_X, &_Y, &_H, &_Q
-  };
-
-  /*
-   *
-   * OPCODES:
-   *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
-   *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
-   *  PRT : 0x08   BRK : 0x09
-   *
-   */
+    static uint8_t* _REGTABLE[REGCODE_NUM]
+    {
+      &_A, &_X, &_Y, &_S
+    };
+    return _regcode < 0 || _regcode - 1 > REGCODE_NUM ? nullptr : _REGTABLE[_regcode];
+  }
 
 public:
 
@@ -283,14 +284,15 @@ private:
   /*
    * 
    * @info   : Essa função mostra algumas informações, como, endereço atual apontado por PC, 
-   *           endereço atual da STACK e INSTRUÇÃO que vai ser executada 
+   *           endereço atual da STACK e INSTRUÇÃO que foi executada 
    *
    * @return : void
    *
    * @param  : void
+   *
    */
 
-  NONE sts() noexcept; 
+  NONE sts(INSTRUCTION*) noexcept; 
 
   /*
    * 
@@ -354,9 +356,9 @@ private:
    *
    */
 
-  NONE BYTE1() noexcept; // Armazena no registrador Y
-  NONE BYTE2() noexcept; // Armazena no registrador F
-  NONE BYTE3() noexcept; // Armazena no registrador Q
+  DATA_BITS_SIZE BYTE1() noexcept;
+  DATA_BITS_SIZE BYTE2() noexcept; 
+  DATA_BITS_SIZE BYTE3() noexcept; 
 
 public:
 
@@ -388,13 +390,13 @@ public:
    *
    * @info   : Essa função lê um bloco de memória e escreve no registrador X
    *
-   * @return : void
+   * @return : uint8_t
    *
    * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
    *
   */
 
-  NONE read(ADDRS_BITS_SIZE) noexcept;
+  DATA_BITS_SIZE read(ADDRS_BITS_SIZE) noexcept;
 
   /*
    *

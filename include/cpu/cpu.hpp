@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 18/10/2024                    | 
+ *    |  SRC MOD   : 19/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    

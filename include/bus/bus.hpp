@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 11/10/2024                    |
+ *    |  SRC MOD   : 20/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -121,7 +121,18 @@ private:
    *
    */
 
-  NONE          write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept; 
+  NONE write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept; 
+
+public:
+
+  /*
+   *
+   * Aqui é 2 funções simples para o DMA
+   *
+   */ 
+  
+  inline DATA_BITS_SIZE DNA_R(ADDRS_BITS_SIZE _addrs_to_read) noexcept { return read(_addrs_to_read); }
+  inline NONE DNA_W(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { write(_addrs_to_write, _data_to_write); }
 
   friend class CPU;
 };

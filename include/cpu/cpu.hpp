@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 19/10/2024                    | 
+ *    |  SRC MOD   : 20/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -72,7 +72,6 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <iostream>
 #include <string>
 
 #define REGCODE_NUM 4
@@ -81,7 +80,7 @@
 
 #define CPU_LOG // Comente essa linha se não quiser o log de cada instrução
 
-constexpr uint16_t CLOCK_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
+constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
 class BUS;
 
@@ -359,6 +358,18 @@ private:
   DATA_BITS_SIZE BYTE1() noexcept;
   DATA_BITS_SIZE BYTE2() noexcept; 
   DATA_BITS_SIZE BYTE3() noexcept; 
+  
+  /*
+   *
+   * @info   : Executa a instrução que está no contador de programas PC, 1 ciclo
+   *
+   * @return : void
+   *
+   * @param  : void
+   *
+   */
+
+  NONE cycle() noexcept;
 
 public:
 
@@ -400,15 +411,15 @@ public:
 
   /*
    *
-   * @info   : Executa a instrução que está no contador de programas PC
+   * @info   : Vai chamar a função cycle com uma frequência
    *
    * @return : void
    *
    * @param  : void
    *
-   */
+   */ 
 
-  NONE run() noexcept;
+  NONE clock_loop() noexcept;
 };
 
 #endif

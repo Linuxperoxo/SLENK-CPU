@@ -6,17 +6,15 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 17/10/2024                    |
+ *    |  SRC MOD   : 20/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
  *
  */
 
-#include <chrono>
 #include <cstdlib>
 #include <iostream>
-#include <thread>
 
 #include "../include/bus/bus.hpp"
 #include "../include/cpu/cpu.hpp"
@@ -42,49 +40,18 @@
 
 int main(int argc, char** argv)
 {
-  CPU* _cpu 
-  {
-    static_cast<CPU*>(std::malloc(sizeof(CPU)))
-  };
-
-  if(_cpu == nullptr)
-  {
-    std::cerr << "Error to alloc memory for CPU class\n";
-    exit(EXIT_FAILURE);
-  }
+  CPU* _cpu { static_cast<CPU*>(std::malloc(sizeof(CPU))) };
+  if(_cpu == nullptr) { std::cerr << "Error to alloc memory for CPU class\n"; exit(EXIT_FAILURE); }
   
-  RAM* _ram
-  {
-    static_cast<RAM*>(std::malloc(sizeof(RAM)))
-  };
+  RAM* _ram { static_cast<RAM*>(std::malloc(sizeof(RAM))) };
+  if(_ram == nullptr) { std::free(_cpu); std::cout << "Error to alloc memory for RAM class\n"; exit(EXIT_FAILURE); }
 
-  if(_ram == nullptr)
-  {
-    std::free(_cpu);
-    
-    std::cout << "Error to alloc memory for RAM class\n";
-    exit(EXIT_FAILURE);
-  }
-
-  BUS* _bus
-  {
-    static_cast<BUS*>(std::malloc(sizeof(BUS)))  
-  };
-
-  if(_bus == nullptr)
-  {
-    std::free(_cpu);
-    std::free(_ram);
-
-    std::cout << "Error to alloc memory for BUS class\n";
-    exit(EXIT_FAILURE);
-  }
+  BUS* _bus { static_cast<BUS*>(std::malloc(sizeof(BUS))) };
+  if(_bus == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for BUS class\n"; exit(EXIT_FAILURE); }
 
   new(_bus) BUS(_cpu, _ram);
   new(_ram) RAM();
   new(_cpu) CPU(_bus);
-
-  _ram->load_rom(argv[1]);
 
   /*
    * 
@@ -115,7 +82,7 @@ int main(int argc, char** argv)
    *
    * Escrevendo uma instrução de JMP para o endereço 0x803d
    *
-   *
+   * 
    * _cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
    * _cpu->write(ROM_INIT + 16, 0x80);
    * _cpu->write(ROM_INIT + 17, 0x3d); 
@@ -135,26 +102,10 @@ int main(int argc, char** argv)
    * 
    */
 
-  /*
-   *
-   *  Simulando um clock simples
-   *
-   */
+  _cpu->_I = 0; 
 
-  _cpu->_I = 0;
-
-  while(true)
-  {
-    if(_cpu->_I == 0)
-    {
-      if(_cpu->_B == 1)
-      {
-        break;
-      }
-    }
-    _cpu->run(); // 1 ciclo
-    std::this_thread::sleep_for(std::chrono::nanoseconds(CLOCK_FREQUENCY)); // 1.79 MHz  
-  }
+  _ram->load_rom(argv[1]);
+  _cpu->clock_loop();
 
   _cpu->~CPU();
   _ram->~RAM();

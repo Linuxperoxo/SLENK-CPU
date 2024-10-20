@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 19/10/2024                    |
+ *    |  SRC MOD   : 20/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -14,9 +14,11 @@
  */
 
 #include <cctype>
+#include <chrono>
 #include <cstdlib>
 #include <ios>
 #include <iostream>
+#include <thread>
 
 #include "../include/cpu/cpu.hpp"
 #include "../include/bus/bus.hpp"
@@ -40,10 +42,10 @@ CPU::CPU(BUS* _bus_to_link) noexcept
    */
    
   write(FIRST_ADDRS_TO_READ_INSTRUCTION, FIRST_INSTRUCTION_OPCODE); // Gravando a primeira instrução que é um RST
-  run(); // Primeiro ciclo
+  cycle();
 
   write(SEC_ADDRS_TO_READ_INSTRUCTION, SEC_INSTRUCTION_OPCODE); // Gravando a segundo instrução que é JMP para o início da ROM
-  
+
   /*
    *
    * Como o JMP lê os próximos 2 bytes para saber qual endereço ele deve pular, então escrevemos nesse local, o endereço 
@@ -52,7 +54,7 @@ CPU::CPU(BUS* _bus_to_link) noexcept
    */
 
   write(SEC_ADDRS_TO_READ_INSTRUCTION + 1, 0x80);
-  run(); // Segundo ciclo
+  cycle();
 }
 
 /*
@@ -98,11 +100,11 @@ DATA_BITS_SIZE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
 
 /*
  *
- * Função que representa 1 Ciclo
+ * Função para o clock
  *
  */
 
-NONE CPU::run() noexcept
+NONE CPU::cycle() noexcept
 {
   INSTRUCTION* _instruction
   {
@@ -112,8 +114,24 @@ NONE CPU::run() noexcept
   #if defined(CPU_LOG)
     sts(_instruction); // Mostrando informações de execução
   #endif
-
+  
   (this->*_instruction->_instruct_ptr)(); // Executando instrução selecionada pelo instruction decoder  
+}
+
+NONE CPU::clock_loop() noexcept
+{
+  while(true)
+  {
+    if(_I == 0)
+    {
+      if(_B == 1)
+      {
+        break;
+      }
+    }
+    cycle(); // 1 ciclo
+    std::this_thread::sleep_for(std::chrono::nanoseconds(CPU_FREQUENCY));
+  }
 }
 
 /*

@@ -5,7 +5,7 @@
  *    |                                            |
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
- *    |  FILE      : bus.cpp                       |
+ *    |  FILE      : display.cpp                   |
  *    |  SRC MOD   : 20/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/

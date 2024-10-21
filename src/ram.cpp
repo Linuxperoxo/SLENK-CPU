@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 17/10/2024                    |
+ *    |  SRC MOD   : 21/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -53,7 +53,7 @@ RAM::~RAM() noexcept
   munmap(_MEMORY, MEMORY_SIZE);
 }
 
-NONE RAM::load_rom(const char* _rom_file) noexcept
+void RAM::load_rom(const char* _rom_file) noexcept
 {
   int _file
   {

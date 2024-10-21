@@ -59,10 +59,6 @@ constexpr uint32_t MEMORY_SIZE { 1024 * 64 };
 
 class BUS;
 
-typedef uint16_t ADDRS_BITS_SIZE;
-typedef uint8_t  DATA_BITS_SIZE;
-typedef void     NONE;
-
 class RAM
 {
 private:
@@ -95,7 +91,7 @@ private:
  *
  */
 
-  inline DATA_BITS_SIZE read(ADDRS_BITS_SIZE _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
+  inline uint8_t read(uint8_t _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
 
 /*
  *
@@ -107,7 +103,7 @@ private:
  *
  */
 
-  inline NONE           write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
+  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
 
 public:
 
@@ -121,7 +117,7 @@ public:
    *
    */
 
-  NONE load_rom(const char*) noexcept;
+  void load_rom(const char*) noexcept;
 
   friend class BUS;
 };

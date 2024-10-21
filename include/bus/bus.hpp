@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 20/10/2024                    |
+ *    |  SRC MOD   : 21/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -52,10 +52,8 @@
 
 #include "../cpu/cpu.hpp"
 #include "../ram/ram.hpp"
-
-typedef uint16_t ADDRS_BITS_SIZE;
-typedef uint8_t  DATA_BITS_SIZE;
-typedef void     NONE;
+#include "../dma/dma.hpp"
+#include "../display/display.hpp"
 
 class BUS
 {
@@ -76,6 +74,7 @@ private:
 
   CPU* _CPU;
   RAM* _RAM;
+  DISPLAY* _DISPLAY;
 
 public:
 
@@ -89,9 +88,9 @@ private:
    *  
    *  Typedef
    *
-   * ADDRS_BITS_SIZE -> uint16_t
-   * DATA_BITS_SIZE  -> uint8_t
-   * NONE            -> void
+   * uint16_t -> uint16_t
+   * uint8_t  -> uint8_t
+   * void            -> void
    *
    */
 
@@ -107,7 +106,7 @@ private:
    *
    */
 
-  DATA_BITS_SIZE read(ADDRS_BITS_SIZE _addrs_to_read) noexcept;
+  uint8_t read(uint16_t _addrs_to_read) noexcept;
 
   /*
    *
@@ -121,20 +120,10 @@ private:
    *
    */
 
-  NONE write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept; 
-
-public:
-
-  /*
-   *
-   * Aqui é 2 funções simples para o DMA
-   *
-   */ 
-  
-  inline DATA_BITS_SIZE DNA_R(ADDRS_BITS_SIZE _addrs_to_read) noexcept { return read(_addrs_to_read); }
-  inline NONE DNA_W(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept { write(_addrs_to_write, _data_to_write); }
+  void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept; 
 
   friend class CPU;
+  friend class DMA;
 };
 
 #endif

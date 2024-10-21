@@ -84,10 +84,6 @@ constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
 class BUS;
 
-typedef uint16_t  ADDRS_BITS_SIZE;
-typedef uint8_t   DATA_BITS_SIZE;
-typedef void      NONE;
-
 class CPU
 {
 private:
@@ -114,13 +110,13 @@ public:
    *
    */
 
-  DATA_BITS_SIZE  _A      { 0x00 };
-  DATA_BITS_SIZE  _X      { 0x00 };
-  DATA_BITS_SIZE  _Y      { 0x00 };
-  DATA_BITS_SIZE  _S      { 0x00 };
-  DATA_BITS_SIZE  _STKPTR { 0x00 };
+  uint8_t  _A      { 0x00 };
+  uint8_t  _X      { 0x00 };
+  uint8_t  _Y      { 0x00 };
+  uint8_t  _S      { 0x00 };
+  uint8_t  _STKPTR { 0x00 };
 
-  ADDRS_BITS_SIZE _PC     { 0x0000 };
+  uint16_t _PC     { 0x0000 };
 
   /*
   * REGISTRADOR DE STATUS:
@@ -173,7 +169,7 @@ public:
   struct INSTRUCTION
   {
     std::string     _name; // nome da instrução que vai aparecer no LOG
-    NONE            (CPU::*_instruct_ptr)(); // Ponteiro para função 
+    void            (CPU::*_instruct_ptr)(); // Ponteiro para função 
   };
 
   /*
@@ -245,7 +241,7 @@ public:
     return _opcode < 0 || _opcode - 1 > OPCODE_NUM ? &_OPTABLE[BRK_OPCODE] : &_OPTABLE[_opcode]; 
   }
 
-  inline DATA_BITS_SIZE* register_decoder(uint8_t _regcode) noexcept
+  inline uint8_t* register_decoder(uint8_t _regcode) noexcept
   {
 
     /*
@@ -274,9 +270,9 @@ private:
    *
    * Typedef
    *
-   * ADDRS_BITS_SIZE -> uint16_t
-   * DATA_BITS_SIZE  -> uint8_t
-   * NONE            -> void
+   * uint16_t -> uint16_t
+   * uint8_t  -> uint8_t
+   * void            -> void
    *
    */
 
@@ -291,7 +287,7 @@ private:
    *
    */
 
-  NONE sts(INSTRUCTION*) noexcept; 
+  void sts(INSTRUCTION*) noexcept; 
 
   /*
    * 
@@ -315,16 +311,16 @@ private:
    *
    */
 
-  NONE RST() noexcept; // Reseta o processador, modificando o PC e STKPTR
-  NONE ADD() noexcept; // Soma
-  NONE SUB() noexcept; // Subtração
-  NONE JMP() noexcept; // Pula PC para um endereço de memória 
-  NONE POP() noexcept; // Desempilha elemento da stack 
-  NONE PSH() noexcept; // Empilha elemento na stack
-  NONE PRT() noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
-  NONE BRK() noexcept; // Interrompe execução do programa
-  NONE INC() noexcept; // Incrementa 1 a um registrador
-  NONE DEC() noexcept; // Decrementa 1 a um registrador
+  void RST() noexcept; // Reseta o processador, modificando o PC e STKPTR
+  void ADD() noexcept; // Soma
+  void SUB() noexcept; // Subtração
+  void JMP() noexcept; // Pula PC para um endereço de memória 
+  void POP() noexcept; // Desempilha elemento da stack 
+  void PSH() noexcept; // Empilha elemento na stack
+  void PRT() noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
+  void BRK() noexcept; // Interrompe execução do programa
+  void INC() noexcept; // Incrementa 1 a um registrador
+  void DEC() noexcept; // Decrementa 1 a um registrador
 
   /*
    *
@@ -344,7 +340,7 @@ private:
    *
    */
 
-  NONE MOV() noexcept; NONE MOV2() noexcept; NONE MOV3() noexcept; NONE MOV4() noexcept;
+  void MOV() noexcept; void MOV2() noexcept; void MOV3() noexcept; void MOV4() noexcept;
 
 
   /*
@@ -355,9 +351,9 @@ private:
    *
    */
 
-  DATA_BITS_SIZE BYTE1() noexcept;
-  DATA_BITS_SIZE BYTE2() noexcept; 
-  DATA_BITS_SIZE BYTE3() noexcept; 
+  uint8_t BYTE1() noexcept;
+  uint8_t BYTE2() noexcept; 
+  uint8_t BYTE3() noexcept; 
   
   /*
    *
@@ -369,7 +365,7 @@ private:
    *
    */
 
-  NONE cycle() noexcept;
+  void cycle() noexcept;
 
 public:
 
@@ -383,7 +379,7 @@ public:
    * 
    */
 
-  NONE linkbus(BUS*) noexcept;
+  void linkbus(BUS*) noexcept;
   
   /*
    *
@@ -395,7 +391,7 @@ public:
    *
   */
 
-  NONE write(ADDRS_BITS_SIZE, DATA_BITS_SIZE) noexcept;
+  void write(uint16_t, uint8_t) noexcept;
   
   /*
    *
@@ -407,7 +403,7 @@ public:
    *
   */
 
-  DATA_BITS_SIZE read(ADDRS_BITS_SIZE) noexcept;
+  uint8_t read(uint16_t) noexcept;
 
   /*
    *
@@ -419,7 +415,8 @@ public:
    *
    */ 
 
-  NONE clock_loop() noexcept;
+  void clock_loop() noexcept;
 };
 
 #endif
+

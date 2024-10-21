@@ -20,7 +20,7 @@
 #include "../include/display/display.hpp"
 #include "../include/bus/bus.hpp"
 
-NONE DISPLAY::cycle() noexcept
+void DISPLAY::cycle() noexcept
 {
   std::cout << "+---------------------------------------------------+"; // Borda superior
   
@@ -36,7 +36,7 @@ NONE DISPLAY::cycle() noexcept
   std::cout << "+---------------------------------------------------+"; // Borda inferior
 }
 
-NONE DISPLAY::clock_loop() noexcept
+void DISPLAY::clock_loop() noexcept
 {
   while(true) // Esse true vai ser temporário, vou usar um sistema de interrupções para gerenciar isso
   {

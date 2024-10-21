@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.cpp                       |
- *    |  SRC MOD   : 9/10/2024                     |
+ *    |  SRC MOD   : 21/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -30,12 +30,12 @@ BUS::BUS(CPU* _cpu, RAM* _ram) noexcept
  *
  */
 
-DATA_BITS_SIZE BUS::read(ADDRS_BITS_SIZE _addrs_to_read) noexcept
+uint8_t BUS::read(ADDRS_BITS_SIZE _addrs_to_read) noexcept
 {
   return _RAM->read(_addrs_to_read);
 }
 
-NONE BUS::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept
+void BUS::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept
 {
   _RAM->write(_addrs_to_write, _data_to_write); 
 }

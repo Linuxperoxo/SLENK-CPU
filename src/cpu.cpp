@@ -59,15 +59,11 @@ CPU::CPU(BUS* _bus_to_link) noexcept
 
 /*
  *
- * Typedef
- *
- * ADDRS_BITS_SIZE -> uint16_t
- * DATA_BITS_SIZE  -> uint8_t
- * NONE            -> void
+ * Pequeno LOG
  *
  */
 
-NONE CPU::sts(INSTRUCTION* _instruct) noexcept
+void CPU::sts(INSTRUCTION* _instruct) noexcept
 {
   std::cout << "INSTRUCTION : \"" << _instruct->_name << "\" "
             << "PC ADDRS: \"0x" << std::hex << _PC << "\" "
@@ -83,17 +79,17 @@ NONE CPU::sts(INSTRUCTION* _instruct) noexcept
  *
  */
 
-NONE CPU::linkbus(BUS* _bus) noexcept
+void CPU::linkbus(BUS* _bus) noexcept
 {
   if(_BUS == nullptr) { _BUS = _bus; }
 }
 
-NONE CPU::write(ADDRS_BITS_SIZE _addrs_to_write, DATA_BITS_SIZE _data_to_write) noexcept
+void CPU::write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
 {
   _BUS->write(_addrs_to_write, _data_to_write);
 }
 
-DATA_BITS_SIZE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
+uint8_t CPU::read(uint16_t _data_to_read) noexcept
 {
   return _BUS->read(_data_to_read);  
 }
@@ -104,7 +100,7 @@ DATA_BITS_SIZE CPU::read(ADDRS_BITS_SIZE _data_to_read) noexcept
  *
  */
 
-NONE CPU::cycle() noexcept
+void CPU::cycle() noexcept
 {
   INSTRUCTION* _instruction
   {
@@ -118,7 +114,7 @@ NONE CPU::cycle() noexcept
   (this->*_instruction->_instruct_ptr)(); // Executando instrução selecionada pelo instruction decoder  
 }
 
-NONE CPU::clock_loop() noexcept
+void CPU::clock_loop() noexcept
 {
   while(true)
   {
@@ -140,17 +136,17 @@ NONE CPU::clock_loop() noexcept
  *
  */
 
-DATA_BITS_SIZE CPU::BYTE1() noexcept
+uint8_t CPU::BYTE1() noexcept
 {   
   return read(_PC + 1);
 }
 
-DATA_BITS_SIZE CPU::BYTE2() noexcept
+uint8_t CPU::BYTE2() noexcept
 {
   return read(_PC + 2);
 }
 
-DATA_BITS_SIZE CPU::BYTE3() noexcept
+uint8_t CPU::BYTE3() noexcept
 {
   return read(_PC + 3);
 }
@@ -161,7 +157,7 @@ DATA_BITS_SIZE CPU::BYTE3() noexcept
  *
  */
 
-NONE CPU::RST() noexcept
+void CPU::RST() noexcept
 {
   /*
    *
@@ -175,7 +171,6 @@ NONE CPU::RST() noexcept
   _S      = 0x00;
   _STKPTR = FIRST_ADDRS_STACK_PTR;
   _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION; 
-  
   _STATUS = 0x00;
 
   ++_PC;
@@ -187,7 +182,7 @@ NONE CPU::RST() noexcept
  *
  */
 
-NONE CPU::ADD() noexcept
+void CPU::ADD() noexcept
 {
   std::cout << "ADD\n";
   ++_PC;
@@ -199,7 +194,7 @@ NONE CPU::ADD() noexcept
  *
  */
 
-NONE CPU::SUB() noexcept
+void CPU::SUB() noexcept
 {
   std::cout << "SUB\n";
   ++_PC;
@@ -211,7 +206,7 @@ NONE CPU::SUB() noexcept
  *
  */
 
-NONE CPU::JMP() noexcept
+void CPU::JMP() noexcept
 {
   uint16_t _buffer = (_buffer | BYTE1()) << 8;
   _buffer          = (_buffer | BYTE2());
@@ -225,7 +220,7 @@ NONE CPU::JMP() noexcept
  *
  */
 
-NONE CPU::POP() noexcept
+void CPU::POP() noexcept
 {
   _S = read(_STKPTR);
 
@@ -242,7 +237,7 @@ NONE CPU::POP() noexcept
  *
  */
 
-NONE CPU::PSH() noexcept
+void CPU::PSH() noexcept
 { 
   if(_STKPTR -1 >= 0x00)
   {
@@ -260,7 +255,7 @@ NONE CPU::PSH() noexcept
  *
  */
 
-NONE CPU::PRT() noexcept
+void CPU::PRT() noexcept
 { 
   _Y = BYTE1();
 
@@ -285,7 +280,7 @@ NONE CPU::PRT() noexcept
  *
  */
 
-NONE CPU::BRK() noexcept
+void CPU::BRK() noexcept
 {
   _B = 1;
 }
@@ -303,14 +298,14 @@ NONE CPU::BRK() noexcept
  *
  */
 
-NONE CPU::INC() noexcept
+void CPU::INC() noexcept
 {
   *register_decoder(BYTE1()) += 1;
   
   _PC += 3;
 }
 
-NONE CPU::DEC() noexcept
+void CPU::DEC() noexcept
 {
   *register_decoder(BYTE1()) -= 1;
 
@@ -323,21 +318,21 @@ NONE CPU::DEC() noexcept
  * 
  */
 
-NONE CPU::MOV() noexcept
+void CPU::MOV() noexcept
 {
   *register_decoder(BYTE1()) = BYTE2();
 
   _PC += 3;
 }
 
-NONE CPU::MOV2() noexcept
+void CPU::MOV2() noexcept
 {
   *register_decoder(BYTE1()) = *register_decoder(BYTE2());
 
   _PC += 3;
 }
 
-NONE CPU::MOV3() noexcept
+void CPU::MOV3() noexcept
 {
   uint16_t _buffer;
 
@@ -349,7 +344,7 @@ NONE CPU::MOV3() noexcept
   _PC += 4;  
 }
 
-NONE CPU::MOV4() noexcept
+void CPU::MOV4() noexcept
 {
   uint16_t _buffer;
 

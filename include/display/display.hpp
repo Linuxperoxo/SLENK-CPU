@@ -31,6 +31,8 @@
 
 #include <cstdint>
 
+class BUS;
+
 #define DISPLAY_FRAMEBUFFER_ADDRS 0x6000
 #define FRAMEBUFFER_SIZE 0x1000
 
@@ -49,6 +51,7 @@ private:
 
 private:
 
+  BUS* _BUS; 
   /*
    *
    * Essa variável vai servir para saber onde a leitura do framebuffer está
@@ -74,7 +77,7 @@ private:
 
 public:
 
-  DISPLAY() noexcept = default;
+  explicit DISPLAY(BUS*) noexcept;
 
   ~DISPLAY() noexcept = default;
   

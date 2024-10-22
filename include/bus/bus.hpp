@@ -72,28 +72,19 @@ private:
     
   */
 
-  CPU* _CPU;
-  RAM* _RAM;
+  CPU*     _CPU;
+  RAM*     _RAM;
   DISPLAY* _DISPLAY;
+  DMA*     _DMA;
 
 public:
 
-  explicit BUS(CPU* _cpu, RAM* _ram) noexcept;
+  explicit BUS(CPU*, RAM*) noexcept;
 
   ~BUS() noexcept = default;
  
 private:
   
-  /*
-   *  
-   *  Typedef
-   *
-   * uint16_t -> uint16_t
-   * uint8_t  -> uint8_t
-   * void            -> void
-   *
-   */
-
   /*
    * 
    *  @info   : Função que vai lé um determinado bloco na memória RAM
@@ -106,7 +97,7 @@ private:
    *
    */
 
-  uint8_t read(uint16_t _addrs_to_read) noexcept;
+  uint8_t read(uint16_t) noexcept;
 
   /*
    *
@@ -120,7 +111,49 @@ private:
    *
    */
 
-  void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept; 
+  void write(uint16_t, uint8_t) noexcept; 
+
+  /*
+   *
+   * DMA FUNCTIONS:
+   *
+   * Aqui eu fiz todo esse jogo de chamada de funções para simular da forma mais real possível, caso
+   * o desempenho fique muito ruim vou melhorar isso.
+   *
+   * Deixei todos inline para diminuir ao máximo o overhead das chamadas, porém o compilador pode ignorar
+   * esses inlines
+   *
+   */
+  
+  /*
+   *
+   * A função _CPU->DMA_interruption() vai chamar essa configure_DMA(), fiz isso para deixar o mais parecido possível, por
+   * mais que fique muito confuso e desnecessário.
+   *
+   */ 
+
+  inline void    configure_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept     { _DMA->DMA_C(_first_addrs, _type, _data); }
+
+public: 
+
+  /*
+   *
+   * Enviamos a interrupção para o processador configurar o DMA
+   *
+   */
+
+  inline uint8_t    cpu_interrupt_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept { return _CPU->DMA_interruption(_first_addrs, _type, _data); }
+  
+private:
+
+  /*
+   *
+   * E aqui fica o tipo da operação R/W
+   *
+   */
+
+  inline void    DMA_W(uint16_t _addrs_to_write, uint8_t _data) noexcept           { write(_addrs_to_write, _data); }
+  inline uint8_t DMA_R(uint16_t _addrs_to_read) noexcept                           { return read(_addrs_to_read); }
 
   friend class CPU;
   friend class DMA;

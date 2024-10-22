@@ -13,22 +13,14 @@
  *
  */
 
+#include <cstdint>
+
 #include "../include/bus/bus.hpp"
 
 BUS::BUS(CPU* _cpu, RAM* _ram) noexcept
   : _CPU(_cpu),
     _RAM(_ram)
 {}
-
-/*
- *
- *  Typedef
- *
- * uint8_t  -> uint8_t
- * uint16_t -> uint16_t
- * NONE            -> void
- *
- */
 
 uint8_t BUS::read(uint16_t _addrs_to_read) noexcept
 {

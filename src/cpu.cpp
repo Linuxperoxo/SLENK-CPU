@@ -15,6 +15,7 @@
 
 #include <cctype>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <ios>
 #include <iostream>
@@ -33,7 +34,7 @@
 
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
-  linkbus(_bus_to_link);
+  _BUS = _bus_to_link;
 
   /*
    *
@@ -79,11 +80,6 @@ void CPU::sts(INSTRUCTION* _instruct) noexcept
  *
  */
 
-void CPU::linkbus(BUS* _bus) noexcept
-{
-  if(_BUS == nullptr) { _BUS = _bus; }
-}
-
 void CPU::write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
 {
   _BUS->write(_addrs_to_write, _data_to_write);
@@ -92,6 +88,26 @@ void CPU::write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
 uint8_t CPU::read(uint16_t _data_to_read) noexcept
 {
   return _BUS->read(_data_to_read);  
+}
+
+/*
+ *
+ * DMA 
+ *
+ */
+
+uint8_t CPU::DMA_interruption(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept
+{
+  _BUS->configure_DMA(_first_addrs, _type, _data);
+
+  if(_type == 1)
+  {
+    return _BUS->DMA_R(_first_addrs);
+  }
+
+  _BUS->DMA_W(_first_addrs, _data);
+  
+  return 0;
 }
 
 /*

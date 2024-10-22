@@ -18,6 +18,7 @@
 
 #include "../include/bus/bus.hpp"
 #include "../include/cpu/cpu.hpp"
+#include "../include/display/display.hpp"
 
 #ifndef ROM_INIT
 #define ROM_INIT 0x8000
@@ -40,6 +41,12 @@
 
 int main(int argc, char** argv)
 {
+  /*
+   *
+   * Alocando memória para cada classe
+   *
+   */
+
   CPU* _cpu { static_cast<CPU*>(std::malloc(sizeof(CPU))) };
   if(_cpu == nullptr) { std::cerr << "Error to alloc memory for CPU class\n"; exit(EXIT_FAILURE); }
   
@@ -48,72 +55,35 @@ int main(int argc, char** argv)
 
   BUS* _bus { static_cast<BUS*>(std::malloc(sizeof(BUS))) };
   if(_bus == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for BUS class\n"; exit(EXIT_FAILURE); }
-
-  new(_bus) BUS(_cpu, _ram);
-  new(_ram) RAM();
-  new(_cpu) CPU(_bus);
+  
+  DISPLAY* _display { static_cast<DISPLAY*>(std::malloc(sizeof(DISPLAY))) };
+  if(_display == nullptr) { std::free(_cpu); std::free(_ram); std::free(_bus); std::cout << "Error to alloc memory for DISPLAY class\n"; exit(EXIT_FAILURE); }
 
   /*
-   * 
-   * Essa parte eu usei quando não tinhamos a função "_ram->load_rom(argv[1]);"
    *
-   * _cpu->write(ROM_INIT, 0x08); Escrevendo a instrução PTR no início da rom(0x8000) 
+   * Construindo cada objeto no addrs alocado
    *
-   *
-   *  Os caracteres que serão impressos com a instrução PRT
-   *
-   *
-   * _cpu->write(ROM_INIT + 1,  'H');
-   * _cpu->write(ROM_INIT + 2,  'E');
-   * _cpu->write(ROM_INIT + 3,  'L');
-   * _cpu->write(ROM_INIT + 4,  'L');
-   * _cpu->write(ROM_INIT + 5,  'O');
-   * _cpu->write(ROM_INIT + 6,  ',');
-   * _cpu->write(ROM_INIT + 7,  ' ');
-   * _cpu->write(ROM_INIT + 8,  'W');
-   * _cpu->write(ROM_INIT + 9,  'O');
-   * _cpu->write(ROM_INIT + 10, 'R');
-   * _cpu->write(ROM_INIT + 11, 'L');
-   * _cpu->write(ROM_INIT + 12, 'D');
-   * _cpu->write(ROM_INIT + 13, '!');
-   * _cpu->write(ROM_INIT + 14, '\n');
-   *
-   *
-   *
-   * Escrevendo uma instrução de JMP para o endereço 0x803d
-   *
-   * 
-   * _cpu->write(ROM_INIT + 15, 0x01); // Instrução JMP 
-   * _cpu->write(ROM_INIT + 16, 0x80);
-   * _cpu->write(ROM_INIT + 17, 0x3d); 
-   *
-   *
-   * Testando instrução MOV
-   *
-   *
-   *
-   * _cpu->write(ROM_INIT + 0x3d, 0x06); // Instrução MOV4
-   * _cpu->write(ROM_INIT + 0x3e, 0x00);
-   * _cpu->write(ROM_INIT + 0x3f, 0x80);
-   * _cpu->write(ROM_INIT + 0x40, 0x01);
-   * _cpu->write(ROM_INIT + 0x41, 0x01); // Instrução JMP para endereço 0x8000
-   * _cpu->write(ROM_INIT + 0x42, 0x80);
-   * _cpu->write(ROM_INIT + 0x43, 0x00);
-   * 
    */
+  
+  new(_bus) BUS(_cpu, _ram);
+  new(_ram) RAM();
+  new(_cpu) CPU(_bus); // Aqui vai ter os 2 primeiros ciclos do processador um RST e um JMP
+  new(_display) DISPLAY(_bus);
 
-  _cpu->_I = 0; 
-
-  _ram->load_rom(argv[1]);
+  
+  _ram->load_rom(argv[1]); // Carregando a ROM
+  
   _cpu->clock_loop();
 
   _cpu->~CPU();
   _ram->~RAM();
   _bus->~BUS();
+  _display->~DISPLAY();
 
   std::free(_cpu);
   std::free(_ram);
   std::free(_bus);
+  std::free(_display);
 
   return 0;
 }

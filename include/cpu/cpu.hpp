@@ -371,18 +371,6 @@ public:
 
   /*
    *
-   * @info   : Essa função é responsável por linkar uma class BUS a CPU
-   *
-   * @return : void
-   *
-   * @param  : Um ponteiro para linkar o barramento a CPU
-   * 
-   */
-
-  void linkbus(BUS*) noexcept;
-  
-  /*
-   *
    * @info   : Essa função escreve um dado em um bloco de memória
    *
    * @return : void
@@ -416,6 +404,18 @@ public:
    */ 
 
   void clock_loop() noexcept;
+
+  /*
+   *
+   * @info : Configura o DMA para a operação
+   *
+   * @return : uint8_t
+   *
+   * @param : void
+   *
+   */
+
+  uint8_t DMA_interruption(uint16_t, uint8_t, uint8_t) noexcept;
 };
 
 #endif

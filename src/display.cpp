@@ -20,17 +20,19 @@
 #include "../include/display/display.hpp"
 #include "../include/bus/bus.hpp"
 
+DISPLAY::DISPLAY(BUS* _bus) noexcept
+  : _BUS(_bus)
+{}
+
 void DISPLAY::cycle() noexcept
 {
+  _BUS->cpu_interrupt_DMA(0x7000, 0, 'H');
+
   std::cout << "+---------------------------------------------------+"; // Borda superior
   
   while(_frammebuffer_addrs <= DISPLAY_FRAMEBUFFER_ADDRS + FRAMEBUFFER_SIZE)
   {
-    /*
-     *
-     * Aqui vai ficar as informações do frame
-     *
-     */ 
+    std::cout << _BUS->cpu_interrupt_DMA(0x7000, 1, 0) << '\n';
   }
 
   std::cout << "+---------------------------------------------------+"; // Borda inferior

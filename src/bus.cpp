@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.cpp                       |
- *    |  SRC MOD   : 21/10/2024                    |
+ *    |  SRC MOD   : 22/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -17,9 +17,10 @@
 
 #include "../include/bus/bus.hpp"
 
-BUS::BUS(CPU* _cpu, RAM* _ram) noexcept
+BUS::BUS(CPU* _cpu, RAM* _ram, DMA* _dma) noexcept
   : _CPU(_cpu),
-    _RAM(_ram)
+    _RAM(_ram),
+    _DMA(_dma)
 {}
 
 uint8_t BUS::read(uint16_t _addrs_to_read) noexcept

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 21/10/2024                    |
+ *    |  SRC MOD   : 22/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -74,12 +74,11 @@ private:
 
   CPU*     _CPU;
   RAM*     _RAM;
-  DISPLAY* _DISPLAY;
   DMA*     _DMA;
 
 public:
 
-  explicit BUS(CPU*, RAM*) noexcept;
+  explicit BUS(CPU*, RAM*, DMA*) noexcept;
 
   ~BUS() noexcept = default;
  
@@ -132,7 +131,7 @@ private:
    *
    */ 
 
-  inline void    configure_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept     { _DMA->DMA_C(_first_addrs, _type, _data); }
+  inline void    configure_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept { _DMA->DMA_C(_first_addrs, _type, _data); }
 
 public: 
 
@@ -152,8 +151,20 @@ private:
    *
    */
 
-  inline void    DMA_W(uint16_t _addrs_to_write, uint8_t _data) noexcept           { write(_addrs_to_write, _data); }
-  inline uint8_t DMA_R(uint16_t _addrs_to_read) noexcept                           { return read(_addrs_to_read); }
+  inline void    DMA_W(uint16_t _addrs_to_write, uint8_t _data) noexcept { write(_addrs_to_write, _data); }
+  inline uint8_t DMA_R(uint16_t _addrs_to_read) noexcept                 { return read(_addrs_to_read); }
+  
+public:
+
+  /*
+   *
+   * Essa função vai ser simplesmente para saber so o programa da ROM ainda está rodando,
+   * como não existe drivers para fazer esse trabalho de ver registrador de status do processador 
+   * vou fazer da forma mais simples possível
+   *
+   */
+
+  inline uint8_t CPU_running() noexcept { return _CPU->_B; };
 
   friend class CPU;
   friend class DMA;

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 20/10/2024                    |
+ *    |  SRC MOD   : 22/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -15,6 +15,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 #include "../include/bus/bus.hpp"
 #include "../include/cpu/cpu.hpp"
@@ -53,6 +54,9 @@ int main(int argc, char** argv)
   RAM* _ram { static_cast<RAM*>(std::malloc(sizeof(RAM))) };
   if(_ram == nullptr) { std::free(_cpu); std::cout << "Error to alloc memory for RAM class\n"; exit(EXIT_FAILURE); }
 
+  DMA* _dma { static_cast<DMA*>(std::malloc(sizeof(DMA))) };
+  if(_ram == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for DMA struct\n"; exit(EXIT_FAILURE); }
+  
   BUS* _bus { static_cast<BUS*>(std::malloc(sizeof(BUS))) };
   if(_bus == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for BUS class\n"; exit(EXIT_FAILURE); }
   
@@ -65,7 +69,7 @@ int main(int argc, char** argv)
    *
    */
   
-  new(_bus) BUS(_cpu, _ram);
+  new(_bus) BUS(_cpu, _ram, _dma);
   new(_ram) RAM();
   new(_cpu) CPU(_bus); // Aqui vai ter os 2 primeiros ciclos do processador um RST e um JMP
   new(_display) DISPLAY(_bus);
@@ -73,12 +77,28 @@ int main(int argc, char** argv)
   
   _ram->load_rom(argv[1]); // Carregando a ROM
   
-  _cpu->clock_loop();
+  std::thread _cpu_theard(&CPU::clock_loop, _cpu);
+  std::thread _display_theard(&DISPLAY::clock_loop, _display);
+
+  _cpu_theard.join();
+  _display_theard.join();
+
+  /*
+   *
+   * Chamando o destrutor de todos
+   *
+   */
 
   _cpu->~CPU();
   _ram->~RAM();
   _bus->~BUS();
   _display->~DISPLAY();
+
+  /*
+   *
+   * Liberando memória alocada
+   *
+   */
 
   std::free(_cpu);
   std::free(_ram);

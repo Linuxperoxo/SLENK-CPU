@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.hpp                   |
- *    |  SRC MOD   : 21/10/2024                    |
+ *    |  SRC MOD   : 22/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -33,7 +33,7 @@
 
 class BUS;
 
-#define DISPLAY_FRAMEBUFFER_ADDRS 0x6000
+#define DISPLAY_FRAMEBUFFER_ADDRS 0x7000
 #define FRAMEBUFFER_SIZE 0x1000
 
 #define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 

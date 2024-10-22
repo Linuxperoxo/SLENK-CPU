@@ -91,7 +91,7 @@ private:
  *
  */
 
-  inline uint8_t read(uint8_t _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
+  inline uint8_t read(uint16_t _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
 
 /*
  *

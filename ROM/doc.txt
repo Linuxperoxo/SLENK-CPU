@@ -14,3 +14,5 @@ EXEMPLO:
          ./CPU ../../ROM/'Hello, World.rom'
 
 Com isso o programa será executado! :D
+
+Para compilar o 'convert_bin.cpp' use o comando 'g++ convert_bin.cpp -o cvbin' e depois execute './cvbin'. Configure tudo antes de compilar :P

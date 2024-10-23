@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 23/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -99,6 +99,7 @@ int main(int argc, char** argv)
   _ram->~RAM();
   _bus->~BUS();
   _display->~DISPLAY();
+  _dma->~DMA();
 
   /*
    *
@@ -110,6 +111,7 @@ int main(int argc, char** argv)
   std::free(_ram);
   std::free(_bus);
   std::free(_display);
+  std::free(_dma);
 
   return 0;
 }

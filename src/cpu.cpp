@@ -42,8 +42,9 @@
 
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
-  _BUS = _bus_to_link;
-  _PC  = FIRST_ADDRS_TO_READ_INSTRUCTION;
+  _BUS    = _bus_to_link;
+  _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION;
+  _STKPTR = FIRST_ADDRS_STACK_PTR;
 
   /*
    *

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 22/10/2024                    | 
+ *    |  SRC MOD   : 23/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -75,10 +75,18 @@
 #include <string>
 
 #define REGCODE_NUM 4
-#define OPCODE_NUM 14
+#define OPCODE_NUM 0x0A
 #define BRK_OPCODE 0x09
 
-#define CPU_LOG // Comente essa linha se não quiser o log de cada instrução
+/*
+ *
+ * Descomente a linha abaixo para ativar o log do CPU
+ *
+ * Por enquanto está bem rústico, recomendo deixar assim mesmo, uso ele para debug
+ *
+ */
+
+#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 
@@ -101,22 +109,22 @@ public:
 
   /*
    *
-   * A      : Usado para armazenar o resultado de operações aritmética;
+   * A      : Usado para armazenar o resultado de operações aritmética, e é usado pela instruçao PTR como INC;
    * X      : Uso geral
-   * Y      : Uso geral, é usado pela instrução PRT, porém PRT é uma instrução temporária
+   * Y      : Uso geral, é usado pela instrução PRT
    * S      : Armazena dados da stack através da instrução POP e joga dados para a stack através da instrução PUH;
    * STKPTR : Armazenar o endereço para o top da pilha;
    * PC     : Armazena o endereço da instrução a ser executada.
    *
    */
 
-  uint8_t  _A      { 0x00 };
-  uint8_t  _X      { 0x00 };
-  uint8_t  _Y      { 0x00 };
-  uint8_t  _S      { 0x00 };
-  uint8_t  _STKPTR { 0x00 };
-
-  uint16_t _PC     { 0x0000 };
+  uint8_t  _A               { 0x00 };
+  uint8_t  _X               { 0x00 };
+  uint8_t  _Y               { 0x00 };
+  uint8_t  _S               { 0x00 };
+  uint8_t  _STKPTR          { 0x00 };
+  uint16_t _PC              { 0x0000 };
+  uint16_t _FRAMEBUFFER_PTR { 0x0000 };
 
   /*
   * REGISTRADOR DE STATUS:
@@ -238,7 +246,7 @@ public:
      *
      */
 
-    return _opcode < 0 || _opcode - 1 > OPCODE_NUM ? &_OPTABLE[BRK_OPCODE] : &_OPTABLE[_opcode]; 
+    return _opcode < 0 || _opcode > OPCODE_NUM - 1 ? &_OPTABLE[BRK_OPCODE] : &_OPTABLE[_opcode]; 
   }
 
   inline uint8_t* register_decoder(uint8_t _regcode) noexcept

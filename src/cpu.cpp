@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 23/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -24,37 +24,34 @@
 #include "../include/cpu/cpu.hpp"
 #include "../include/bus/bus.hpp"
 
-#define FIRST_ADDRS_TO_READ_INSTRUCTION 0xFFFD
+#define FIRST_ADDRS_TO_READ_INSTRUCTION 0x1000
 #define FIRST_INSTRUCTION_OPCODE 0x00
-#define SEC_ADDRS_TO_READ_INSTRUCTION 0xFFFE
-#define SEC_INSTRUCTION_OPCODE 0x01
+
 #define FIRST_ADDRS_STACK_PTR 0xFF
-#define ROM_INIT 0x8000
 #define BRK_INSTRUCTION_OPCODE 0x09
+
+#define ROM_INIT 0x8000
+
+#ifndef DISPLAY_FRAMEBUFFER_ADDRS
+#define DISPLAY_FRAMEBUFFER_ADDRS 0x7000
+#endif
+
+#ifndef DISPLAY_FRAMEBUFFER_SIZE
+#define DISPLAY_FRAMEBUFFER_SIZE 0x12C
+#endif
 
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
   _BUS = _bus_to_link;
+  _PC  = FIRST_ADDRS_TO_READ_INSTRUCTION;
 
   /*
    *
-   * Os primeiros 2 ciclos de inicialização
+   * O primeiro ciclos de inicialização
    *
    */
    
   write(FIRST_ADDRS_TO_READ_INSTRUCTION, FIRST_INSTRUCTION_OPCODE); // Gravando a primeira instrução que é um RST
-  cycle();
-
-  write(SEC_ADDRS_TO_READ_INSTRUCTION, SEC_INSTRUCTION_OPCODE); // Gravando a segundo instrução que é JMP para o início da ROM
-
-  /*
-   *
-   * Como o JMP lê os próximos 2 bytes para saber qual endereço ele deve pular, então escrevemos nesse local, o endereço 
-   * que vamos querer ir, no caso 0x8000
-   *
-   */
-
-  write(SEC_ADDRS_TO_READ_INSTRUCTION + 1, 0x80);
   cycle();
 }
 
@@ -181,15 +178,14 @@ void CPU::RST() noexcept
    *
    */
 
-  _A      = 0x00;
-  _X      = 0x00;
-  _Y      = 0x00;
-  _S      = 0x00;
-  _STKPTR = FIRST_ADDRS_STACK_PTR;
-  _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION; 
-  _STATUS = 0x00;
-
-  ++_PC;
+  _A               = 0x00;
+  _X               = 0x00;
+  _Y               = 0x00;
+  _S               = 0x00;
+  _STKPTR          = FIRST_ADDRS_STACK_PTR;
+  _PC              = ROM_INIT; 
+  _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
+  _STATUS          = 0x00;
 }
 
 /*
@@ -272,21 +268,39 @@ void CPU::PSH() noexcept
  */
 
 void CPU::PRT() noexcept
-{ 
-  _Y = BYTE1();
+{
+  _Y = { BYTE1() };
+  _A = { 0 };
 
-  ++_PC;
+  /*
+   *
+   * Como estamos trabalhando com usigned int por seguraça decidi usar 
+   * um registrador incrementando 
+   *
+   */
 
-  while(_Y != '\n')
-  {  
-    std::cout << _Y;
-
-    _Y = BYTE1();
-      
+  while(_A <= _Y)
+  {
+    write(_FRAMEBUFFER_PTR, BYTE2());
+    
     ++_PC;
-  }
-  std::cout << _Y;
+    ++_FRAMEBUFFER_PTR;
+    ++_A;
 
+    if(_FRAMEBUFFER_PTR > DISPLAY_FRAMEBUFFER_ADDRS + DISPLAY_FRAMEBUFFER_SIZE)
+    {
+      _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
+    }
+  }
+
+  /*
+   *
+   * Copiando o Byte faltante
+   *
+   */
+
+  write(_FRAMEBUFFER_PTR, BYTE2());
+  
   ++_PC;
 }
 

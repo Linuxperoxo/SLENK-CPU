@@ -129,9 +129,9 @@ void RAM::load_rom(const char* _rom_file) noexcept
   delete _rom_file_info;
   close(_file);
 
-  uint8_t _byte { 0 }; // Aqui onde vamos mover cada "bit" do arquivo  
-  uint8_t _bits { 0 }; // Vendo quantos bits nos copiamos
-  uint8_t _flip { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
+  uint16_t _bits { 0 }; // Vendo quantos bits nos copiamos
+  uint8_t _byte  { 0 }; // Aqui onde vamos mover cada "bit" do arquivo  
+  uint8_t _flip  { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
 
   for(; _bits < _rom_file_size; _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
   {

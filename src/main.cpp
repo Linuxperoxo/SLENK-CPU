@@ -71,12 +71,18 @@ int main(int argc, char** argv)
   
   new(_bus) BUS(_cpu, _ram, _dma);
   new(_ram) RAM();
-  new(_cpu) CPU(_bus); // Aqui vai ter os 2 primeiros ciclos do processador um RST e um JMP
+  new(_cpu) CPU(_bus); // Aqui vai ter o primeiros ciclos do processador um RST
   new(_display) DISPLAY(_bus);
 
   
   _ram->load_rom(argv[1]); // Carregando a ROM
   
+  /*
+   *
+   * Aqui colocamos uma thread para cada parte, já que cada um tem um clock próprio   
+   * 
+   */
+
   std::thread _cpu_theard(&CPU::clock_loop, _cpu);
   std::thread _display_theard(&DISPLAY::clock_loop, _display);
 

@@ -42,12 +42,12 @@ void DISPLAY::cycle() noexcept
 {
   char     _display_char    { '\0' };
   uint8_t  _render_for_line { 1 };
-  uint16_t _count           { 0 };
+  uint16_t _count           { 1 };
   
   std::cout << "\n+---------------------DISPLAY--------------------+\n";
   std::cout.flush();
   
-  while(++_count < DISPLAY_FRAMEBUFFER_SIZE - 1)
+  while(_count <= DISPLAY_FRAMEBUFFER_SIZE)
   {
     _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0);
     
@@ -83,6 +83,17 @@ void DISPLAY::cycle() noexcept
 
       /*
        *
+       * Adicionei esse if para corrigir um bug de quebra de linha que estava me incomodando
+       * 
+       * Ele rodava o loop mais uma vez quebrando a linha e imprimindo o próximo caractere, 
+       * apenas usei esse if para quebrar o loop quando quebrar a linha e não imprimir o caractere
+       *
+       */
+
+      if(_count >= DISPLAY_FRAMEBUFFER_SIZE) { break; }
+
+      /*
+       *
        * Como não queremos o '\n' da ROM pegamos o próximo caractere 
        *
        */
@@ -96,6 +107,14 @@ void DISPLAY::cycle() noexcept
        */
 
       _render_for_line = 1;
+      
+      /*
+       *
+       * Adicionamos mais 1 no count já que pulamos um caractere
+       *
+       */
+
+      ++_count;
     }
     
     /*
@@ -110,9 +129,10 @@ void DISPLAY::cycle() noexcept
 
     ++_frammebuffer_addrs;
     ++_render_for_line;
+    ++_count;
   }
 
-  std::cout << "\n+------------------------------------------------+\n";
+  std::cout << "+------------------------------------------------+\n";
   std::cout.flush();
 
   _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;

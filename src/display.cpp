@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 23/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -14,6 +14,7 @@
  */
 
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -22,62 +23,113 @@
 #include "../include/display/display.hpp"
 #include "../include/bus/bus.hpp"
 
+#define MAX_CHAR_FOR_LINE 50
+#define DELAY_MS 50
+#define READ_OP 1
+
 DISPLAY::DISPLAY(BUS* _bus) noexcept
   : _BUS(_bus)
 {}
 
+/*
+ *
+ * Por enquanto não vou usar um buffer para cada frame, deixei com esse delay
+ * para ter uma animação legal :^)
+ *
+ */
+
 void DISPLAY::cycle() noexcept
 {
-
-  /*
-   *
-   * Essa função ainda está sendo feita, essa não vai ser a lógica final
-   *
-   */
-
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 0,  0, 'H');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 1,  0, 'E');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 2,  0, 'L');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 3,  0, 'L');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 4,  0, 'O');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 5,  0, ',');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 6,  0, ' ');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 7,  0, 'W');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 8,  0, 'O');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 9,  0, 'R');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 10, 0, 'L');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 11, 0, 'D');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 12, 0, '!');
-  _BUS->cpu_interrupt_DMA(DISPLAY_FRAMEBUFFER_ADDRS + 13, 0, '\n');
+  char     _display_char    { '\0' };
+  uint8_t  _render_for_line { 1 };
+  uint16_t _count           { 0 };
   
-  //std::stringstream _cout_buffer;
-
-  std::cout << "\n+----------------------DISPLAY----------------------+\n\n";
+  std::cout << "\n+---------------------DISPLAY--------------------+\n";
   std::cout.flush();
-
-  //_cout_buffer << "\n+----------------------DISPLAY----------------------+\n\n"; // Borda superior
   
-  while(_frammebuffer_addrs <= DISPLAY_FRAMEBUFFER_ADDRS + 13)
+  while(++_count < DISPLAY_FRAMEBUFFER_SIZE - 1)
   {
-    //_cout_buffer << _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, 1, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    std::cout << _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, 1, 0);
+    _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0);
+    
+    if(_display_char == '\n')
+    {
+      
+      /*
+       *
+       * Isso aqui é temporário, porém ta funcionando bem
+       * 
+       * Serve para manipular as linhas quando usamos o '\n'
+       *
+       */ 
+
+      while(_render_for_line < MAX_CHAR_FOR_LINE)
+      {
+        std::cout << ' ';
+        
+        ++_render_for_line;
+        ++_count;
+      }
+    }
+
+    /*
+     *
+     * A cada 50 caracteres vamos quebrar a linha
+     *
+     */
+
+    if(_render_for_line % MAX_CHAR_FOR_LINE == 0)
+    { 
+      std::cout << '\n';
+
+      /*
+       *
+       * Como não queremos o '\n' da ROM pegamos o próximo caractere 
+       *
+       */
+      
+      _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0);
+      
+      /*
+       *
+       * Zeramos essa variável já que é uma linha nova
+       *
+       */
+
+      _render_for_line = 1;
+    }
+    
+    /*
+     *
+     * Delay para ficar uma animação legal
+     *
+     */
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
+    std::cout << _display_char;
     std::cout.flush();
+
     ++_frammebuffer_addrs;
+    ++_render_for_line;
   }
 
-  std::cout << "\n+---------------------------------------------------+\n\n";
+  std::cout << "\n+------------------------------------------------+\n";
+  std::cout.flush();
 
-  //_cout_buffer << "\n+--------------------------------------------------+\n\n"; // Borda superior
-  
-  //std::cout << _cout_buffer.str(); // Mostrando o frame
+  _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;
 }
 
 void DISPLAY::clock_loop() noexcept
 {
+
+  /*
+   *
+   * Fica rodando até uma instrução BRK ser executada
+   *
+   */ 
+
   while(_BUS->CPU_running() != 1)
   {
-    std::this_thread::sleep_for(std::chrono::seconds(DISPLAY_FREQUENCY));
-    cycle();
+    std::this_thread::sleep_for(std::chrono::seconds(DISPLAY_FREQUENCY)); // Deixei ele em cima de cycle() para o processador conseguir rodar o primeiro clock dele
+    cycle(); // 1 ciclo 
   }
 }

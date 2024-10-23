@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.hpp                   |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 23/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -34,7 +34,7 @@
 class BUS;
 
 #define DISPLAY_FRAMEBUFFER_ADDRS 0x7000
-#define FRAMEBUFFER_SIZE 0x1000
+#define DISPLAY_FRAMEBUFFER_SIZE 0x12C
 
 #define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
 
@@ -58,14 +58,12 @@ private:
    *
    */ 
 
-  uint16_t _frammebuffer_addrs { DISPLAY_FRAMEBUFFER_ADDRS }; 
+  uint16_t _frammebuffer_addrs { DISPLAY_FRAMEBUFFER_ADDRS };
 
   /*
    *
-   * @info   : Essa função corresponde a 1 ciclo do display, ou seja, como nos temos
-   *           10Hz vamos ter 10 ciclos por segundo, para ficar melhor de entender,
-   *           vamos dizer que cada ciclo é um frame, um monitor simples tem 60Hz, já
-   *           esse tem 1Hz, por enquanto :)
+   * @info   : Essa função corresponde a 1 ciclo do display, ou seja, um frame por segundo,
+   *           como ainda não terminei por completo ele está fazendo 10 caracteres por segundo.
    *
    * @param  : void
    *
@@ -83,7 +81,7 @@ public:
   
   /*
    *
-   * @info   : Aqui fica o loop principal, essa função vai chamar a função cycle 10 
+   * @info   : Aqui fica o loop principal, essa função vai chamar a função cycle 1 
    *           vezes por segundo
    *
    * @param  : void

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 23/10/2024                    |
+ *    |  SRC MOD   : 24/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -43,32 +43,79 @@ void DISPLAY::cycle() noexcept
   char     _display_char    { '\0' };
   uint8_t  _render_for_line { 1 };
   uint16_t _count           { 1 };
-  
-  std::cout << "\n+---------------------DISPLAY--------------------+\n";
-  std::cout.flush();
+
+  /*
+   *
+   * Para armazenar o frame em um buffer
+   *
+   */
+
+  std::stringstream _frame;
+
+  /*
+   *
+   * Início do display
+   *
+   */
+
+  _frame << "\n+====================DISPLAY=====================+\n|";
   
   while(_count <= DISPLAY_FRAMEBUFFER_SIZE)
   {
-    _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0);
+    _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
     
     if(_display_char == '\n')
     {
       
       /*
-       *
-       * Isso aqui é temporário, porém ta funcionando bem
        * 
        * Serve para manipular as linhas quando usamos o '\n'
+       *
+       * OBS: Isso não seria necessário se nao tivesse os '|' no final das linhas
+       *      mas coloquei para ficar mais agradável
        *
        */ 
 
       while(_render_for_line < MAX_CHAR_FOR_LINE)
       {
-        std::cout << ' ';
+        _frame << ' ';
         
         ++_render_for_line;
         ++_count;
       }
+      
+      /*
+       *
+       * Fazendo correção da linha
+       *
+       */
+
+      _frame << ' ';
+    }
+    
+    /*
+     *
+     * Isso serve para colocar o '|' quando os outros bytes do framebuffer são 0, isso vai ser melhorado
+     *
+     */
+
+    if(_display_char == '\0' && _BUS->cpu_interrupt_DMA(_frammebuffer_addrs + 1, READ_OP, 0, DISPLAY_DEVICE_ADDRS) == '\0')
+    {
+      while(_BUS->cpu_interrupt_DMA(++_frammebuffer_addrs + 1, READ_OP, 0, DISPLAY_DEVICE_ADDRS) == '\0' && _render_for_line < MAX_CHAR_FOR_LINE)
+      {
+        _frame << ' ';
+        
+        ++_render_for_line;
+        ++_count;
+      }
+
+      /*
+       *
+       * Fazendo uma correção na primeira linha
+       *
+       */
+
+      if(_count <= MAX_CHAR_FOR_LINE) _frame << ' ';
     }
 
     /*
@@ -79,7 +126,7 @@ void DISPLAY::cycle() noexcept
 
     if(_render_for_line % MAX_CHAR_FOR_LINE == 0)
     { 
-      std::cout << '\n';
+      _frame << "|\n";
 
       /*
        *
@@ -91,6 +138,8 @@ void DISPLAY::cycle() noexcept
        */
 
       if(_count >= DISPLAY_FRAMEBUFFER_SIZE) { break; }
+      
+      _frame << '|';
 
       /*
        *
@@ -98,7 +147,7 @@ void DISPLAY::cycle() noexcept
        *
        */
       
-      _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0);
+      _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
       
       /*
        *
@@ -116,26 +165,26 @@ void DISPLAY::cycle() noexcept
 
       ++_count;
     }
-    
-    /*
-     *
-     * Delay para ficar uma animação legal
-     *
-     */
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
-    std::cout << _display_char;
-    std::cout.flush();
+     
+    _frame << _display_char;
 
     ++_frammebuffer_addrs;
     ++_render_for_line;
     ++_count;
   }
 
-  std::cout << "+------------------------------------------------+\n";
-  std::cout.flush();
+  _frame << "+================================================+\n";
 
   _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;
+
+  /*
+   *
+   * Depois de armazenar todas as informações do frame vamos jogar ele para o display
+   *
+   */
+
+  std::cout << _frame.str();
+  std::cout.flush();
 }
 
 void DISPLAY::clock_loop() noexcept
@@ -150,6 +199,9 @@ void DISPLAY::clock_loop() noexcept
   while(_BUS->CPU_running() != 1)
   {
     std::this_thread::sleep_for(std::chrono::seconds(DISPLAY_FREQUENCY)); // Deixei ele em cima de cycle() para o processador conseguir rodar o primeiro clock dele
+    _BUS->DMA_started();
     cycle(); // 1 ciclo 
+    _BUS->DMA_stopped();
   }
 }
+

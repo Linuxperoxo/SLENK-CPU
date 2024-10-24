@@ -57,7 +57,7 @@ int main()
     'H', 'E', 'L', 'L', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
   };
 
-  for(int i { 0 }; i < CHAR_NUM; i++){
+  for(int i { 0 }; i < CHAR_NUM + 3; i++){
     _byte._byte = _char_to_convert[i];
 
     std::cout << "+-----------------------------+\n" 

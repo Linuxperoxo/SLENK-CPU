@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 24/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -141,7 +141,23 @@ public:
    *
    */
 
-  inline uint8_t    cpu_interrupt_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept { return _CPU->DMA_interruption(_first_addrs, _type, _data); }
+  inline uint8_t    cpu_interrupt_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data, uint8_t _IO_device_addrs) noexcept { return _CPU->DMA_interruption(_first_addrs, _type, _data, _IO_device_addrs); }
+  
+  /*
+   *
+   * Sinalizando que o DMA não está mais em uso
+   *
+   */
+
+  inline void       DMA_stopped() noexcept { _CPU->DMA_stopped(); }
+
+  /*
+   *
+   * Sinaliza que o DMA está sendo usado
+   *
+   */
+
+  inline void       DMA_started() noexcept { _CPU->DMA_started(); }
   
 private:
 

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 23/10/2024                    | 
+ *    |  SRC MOD   : 24/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -123,6 +123,7 @@ public:
   uint8_t  _Y               { 0x00 };
   uint8_t  _S               { 0x00 };
   uint8_t  _STKPTR          { 0x00 };
+  uint8_t  _DMA_DEV         { 0x00 };
   uint16_t _PC              { 0x0000 };
   uint16_t _FRAMEBUFFER_PTR { 0x0000 };
 
@@ -280,7 +281,7 @@ private:
    *
    * uint16_t -> uint16_t
    * uint8_t  -> uint8_t
-   * void            -> void
+   * void     -> void
    *
    */
 
@@ -415,15 +416,41 @@ public:
 
   /*
    *
-   * @info : Configura o DMA para a operação
+   * @info   : Uma interrupção que configura o DMA para uma operação
    *
    * @return : uint8_t
    *
-   * @param : void
+   * @param  : void
    *
    */
 
-  uint8_t DMA_interruption(uint16_t, uint8_t, uint8_t) noexcept;
+  uint8_t DMA_interruption(uint16_t, uint8_t, uint8_t, uint8_t) noexcept;
+ 
+  /*
+   *
+   * @info    : Uma interrupção que avisa que o DMA não está sendo usado 
+   *            e que o barramento está livre
+   *
+   * @return : void
+   *
+   * @param  : void
+   *
+   */
+
+  void DMA_stopped() noexcept;
+
+  /*
+   *
+   * @info   : Uma interrupção que avisa que o DMA está sendo usado
+   *           e que o barramento não pode ser usado
+   *
+   * @return : void
+   *
+   * @param  : void
+   *
+   */ 
+
+  void DMA_started() noexcept;
 };
 
 #endif

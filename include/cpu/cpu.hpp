@@ -82,11 +82,13 @@
  *
  * Descomente a linha abaixo para ativar o log do CPU
  *
- * Por enquanto está bem rústico, recomendo deixar assim mesmo, uso ele para debug
+ * Por enquanto está bem rústico, recomendo deixar assim mesmo
+ *
+ * Eu uso ele para debug
  *
  */
 
-#define CPU_LOG
+//#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
 

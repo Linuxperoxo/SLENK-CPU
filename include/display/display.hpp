@@ -37,7 +37,15 @@ class BUS;
 #define DISPLAY_FRAMEBUFFER_SIZE 0x12C
 #define DISPLAY_DEVICE_ADDRS 0xFA
 
-#define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
+/*
+ *
+ * Essa parte vai servir para debugar o código, caso você não vá fazer alteração
+ * no código pode deixar do jeito que está
+ *
+ */
+
+// #define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
+#define SHOW_DISPLAY // Caso não queira que o display seja mostrado comente essa linha
 
 constexpr uint16_t DISPLAY_FREQUENCY { 1000 / 1000 }; // Frequencia de 1Hz   
 
@@ -53,6 +61,7 @@ private:
 private:
 
   BUS* _BUS; 
+
   /*
    *
    * Essa variável vai servir para saber onde a leitura do framebuffer está

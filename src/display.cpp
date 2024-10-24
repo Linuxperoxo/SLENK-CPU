@@ -58,12 +58,12 @@ void DISPLAY::cycle() noexcept
    *
    */
 
-  _frame << "\n+====================DISPLAY=====================+\n|";
+  _frame << "\n+=====================DISPLAY=====================+\n|";
   
   while(_count <= DISPLAY_FRAMEBUFFER_SIZE)
   {
     _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
-    
+
     if(_display_char == '\n')
     {
       
@@ -90,7 +90,7 @@ void DISPLAY::cycle() noexcept
        *
        */
 
-      _frame << ' ';
+      _frame << ' ' << ' ';
     }
     
     /*
@@ -115,7 +115,7 @@ void DISPLAY::cycle() noexcept
        *
        */
 
-      if(_count <= MAX_CHAR_FOR_LINE) _frame << ' ';
+      if(_count <= MAX_CHAR_FOR_LINE) _frame << ' ' << ' ';
     }
 
     /*
@@ -148,7 +148,7 @@ void DISPLAY::cycle() noexcept
        */
       
       _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
-      
+
       /*
        *
        * Zeramos essa variável já que é uma linha nova
@@ -173,7 +173,7 @@ void DISPLAY::cycle() noexcept
     ++_count;
   }
 
-  _frame << "+================================================+\n";
+  _frame << "+=================================================+\n";
 
   _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;
 
@@ -183,8 +183,10 @@ void DISPLAY::cycle() noexcept
    *
    */
 
+#if defined SHOW_DISPLAY
   std::cout << _frame.str();
   std::cout.flush();
+#endif
 }
 
 void DISPLAY::clock_loop() noexcept

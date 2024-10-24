@@ -200,7 +200,7 @@ void DISPLAY::clock_loop() noexcept
 
   while(_BUS->CPU_running() != 1)
   {
-    std::this_thread::sleep_for(std::chrono::seconds(DISPLAY_FREQUENCY)); // Deixei ele em cima de cycle() para o processador conseguir rodar o primeiro clock dele
+    std::this_thread::sleep_for(std::chrono::milliseconds(DISPLAY_FREQUENCY)); // Deixei ele em cima de cycle() para o processador conseguir rodar o primeiro clock dele
     _BUS->DMA_started();
     cycle(); // 1 ciclo 
     _BUS->DMA_stopped();

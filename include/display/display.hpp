@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.hpp                   |
- *    |  SRC MOD   : 24/10/2024                    |
+ *    |  SRC MOD   : 25/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -44,8 +44,8 @@ class BUS;
  *
  */
 
-// #define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
-#define SHOW_DISPLAY // Caso não queira que o display seja mostrado comente essa linha
+//#define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
+//#define SHOW_DISPLAY // Caso não queira que o display seja mostrado comente essa linha
 
 constexpr uint16_t DISPLAY_FREQUENCY { 1000 / 1 }; // Frequencia de 1Hz   
 

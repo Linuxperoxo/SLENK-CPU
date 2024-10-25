@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 24/10/2024                    |
+ *    |  SRC MOD   : 25/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -52,6 +52,13 @@ void DISPLAY::cycle() noexcept
 
   std::stringstream _frame;
 
+#if defined SHOW_DISPLAY 
+  static uint64_t _frames_render    { 0 };
+  static uint64_t _dma_interruption { 0 };
+  
+  std::stringstream _log;
+#endif
+
   /*
    *
    * Início do display
@@ -64,6 +71,10 @@ void DISPLAY::cycle() noexcept
   {
     _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
 
+    #if defined DISPLAY_LOG
+      ++_dma_interruption;
+    #endif
+    
     if(_display_char == '\n')
     {
       
@@ -107,6 +118,10 @@ void DISPLAY::cycle() noexcept
         
         ++_render_for_line;
         ++_count;
+        
+        #if defined DISPLAY_LOG
+          ++_dma_interruption;
+        #endif
       }
 
       /*
@@ -149,6 +164,10 @@ void DISPLAY::cycle() noexcept
       
       _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
 
+      #if defined DISPLAY_LOG
+        ++_dma_interruption;
+      #endif
+      
       /*
        *
        * Zeramos essa variável já que é uma linha nova
@@ -175,8 +194,6 @@ void DISPLAY::cycle() noexcept
 
   _frame << "+=================================================+\n";
 
-  _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;
-
   /*
    *
    * Depois de armazenar todas as informações do frame vamos jogar ele para o display
@@ -187,6 +204,32 @@ void DISPLAY::cycle() noexcept
   std::cout << _frame.str();
   std::cout.flush();
 #endif
+
+#if defined DISPLAY_LOG
+  
+  /*
+   *
+   * Parte para a depuração do código
+   *
+   */
+
+  _log << "FRAMEBUFFER_PTR_ADDRS : " << std::hex << "0x" << _frammebuffer_addrs << '\n';
+  _log << "DISPLAY FREQUENCY     : " << std::dec << DISPLAY_FREQUENCY/1000 << "Hz" << '\n';
+  _log << "FRAME COUNTER         : " << std::dec << ++_frames_render << '\n';
+  _log << "DMA INTERRUPTION      : " << std::dec << _dma_interruption << '\n'; 
+
+  std::cout << "\n+---------DISPLAY-LOG---------+\n";
+  std::cout << _log.str();
+  std::cout << "+-----------------------------+\n";
+#endif
+  
+  /*
+   *
+   * Definindo o ponteiro para o início do framebuffer
+   *
+   */
+
+  _frammebuffer_addrs = DISPLAY_FRAMEBUFFER_ADDRS;
 }
 
 void DISPLAY::clock_loop() noexcept

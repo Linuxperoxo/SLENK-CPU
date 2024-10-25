@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 24/10/2024                    |
+ *    |  SRC MOD   : 25/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -17,8 +17,10 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <thread>
+#include <sstream> 
 
 #include "../include/cpu/cpu.hpp"
 #include "../include/bus/bus.hpp"
@@ -57,31 +59,16 @@ CPU::CPU(BUS* _bus_to_link) noexcept
 
 /*
  *
- * Pequeno LOG
- *
- */
-
-void CPU::sts(INSTRUCTION* _instruct) noexcept
-{
-  std::cout << "INSTRUCTION : \"" << _instruct->_name << "\" "
-            << "PC ADDRS: \"0x" << std::hex << _PC << "\" "
-            << "STACK ADDRS: \"0x" << std::hex << static_cast<int>(_STKPTR) << "\"" 
-            << '\n';
-
-  std::cout << std::dec;
-}
-
-/*
- *
  * Funções Legais >:)
  *
  */
 
 void CPU::write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
 {
+
   /*
    *
-   * Aqui bloquemos o acesso ao barramento até que o DMA para de ser usado
+   * Aqui bloquemos o acesso ao barramento até que o DMA pare de ser usado
    *
    */
 
@@ -92,6 +79,7 @@ void CPU::write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
 
 uint8_t CPU::read(uint16_t _data_to_read) noexcept
 {
+
   /*
    *
    * A mesma coisa aqui
@@ -111,19 +99,26 @@ uint8_t CPU::read(uint16_t _data_to_read) noexcept
 
 uint8_t CPU::DMA_interruption(uint16_t _first_addrs, uint8_t _type, uint8_t _data, uint8_t _IO_device_addrs_to_use_DMA) noexcept
 {
+  while(_U != 0) { if(_DMA_DEV == _IO_device_addrs_to_use_DMA || _DMA_DEV == 0) { break; }}
+  
   /*
    *
-   *  Aqui vamos usar um endereço para cada dev, cada chamado o DMA nós vamos armazenar o addrs do dev e somente ele terá acesso ao barramento
+   *  Aqui vamos usar um endereço para cada dev, cada chamado o DMA nós vamos armazenar o addrs do I/O device e somente ele terá acesso ao barramento
+   *
+   */
+ 
+  _DMA_DEV = _IO_device_addrs_to_use_DMA;
+
+
+  /*
+   *
+   * Configurando DMA para o device
    *
    */
 
-  while(_U != 0) { if(_DMA_DEV == _IO_device_addrs_to_use_DMA || _DMA_DEV == 0) { break; }}
-  
-  _DMA_DEV = _IO_device_addrs_to_use_DMA;
-
   _BUS->configure_DMA(_first_addrs, _type, _data);
 
-  if(_type == 1)
+  if(_type)
   {
     return _BUS->DMA_R(_first_addrs);
   }
@@ -158,7 +153,36 @@ void CPU::cycle() noexcept
   };
 
   #if defined(CPU_LOG)
-    sts(_instruction); // Mostrando informações de execução
+    
+    /*
+     *
+     * Um pequeno LOG so para ajudar no desenvolvimento
+     *
+     */
+
+    /*
+     *
+     * (1.0 / 1790000.0) Calculamos o tempo que leva para um ciclo do processador e (558.0 / 1e9) 
+     * calculamos o tempo de sono, 1e9 é notação para 1.10^9 = 1 000 000 000
+     *
+     */
+    
+    _runtime_sec += (1.0 / 1790000.0) + (558.0 / 1e9);
+    
+    _cpu_log << "INSTRUCTION   : \"" << _instruction->_name << "\" \n";
+    _cpu_log << "PC ADDRS      : \"0x" << std::hex << _PC << "\" \n";
+    _cpu_log << "STACK ADDRS   : \"0x" << std::hex << static_cast<int>(_STKPTR) << "\" \n";
+    _cpu_log << "CYCLE COUNTER : \"" << std::dec << ++_cycle_counter << "\" \n";
+    _cpu_log << "CPU CLOCK     : \"" << std::dec << std::setprecision(3) << HMZ_FREQUENCY << "MHz\" \n";
+    _cpu_log << "CPU RUNTIME   : \"" << std::dec << std::setprecision(3) << _runtime_sec << "sec\"\n";
+
+    std::cout << "\n+--------CPU-INSTRUCTION-LOG--------+\n";
+    std::cout << _cpu_log.str();
+    std::cout << "+-----------------------------------+\n";
+    std::cout.flush();  
+
+    _cpu_log.str("");
+    _cpu_log.clear();
   #endif
   
   (this->*_instruction->_instruct_ptr)(); // Executando instrução selecionada pelo instruction decoder  
@@ -188,22 +212,16 @@ void CPU::clock_loop() noexcept
 
 uint8_t CPU::BYTE1() noexcept
 {
-  while(_U != 0) { }
-  
   return read(_PC + 1);
 }
 
 uint8_t CPU::BYTE2() noexcept
 {
-  while(_U != 0) { }
-  
   return read(_PC + 2);
 }
 
 uint8_t CPU::BYTE3() noexcept
 {
-  while(_U != 0) { }
-  
   return read(_PC + 3);
 }
 

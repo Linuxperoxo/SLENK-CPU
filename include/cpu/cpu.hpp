@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 24/10/2024                    | 
+ *    |  SRC MOD   : 25/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -73,6 +73,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string>
+#include <sstream>
 
 #define REGCODE_NUM 4
 #define OPCODE_NUM 0x0A
@@ -88,9 +89,13 @@
  *
  */
 
-//#define CPU_LOG
+#define CPU_LOG
 
-constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 1.79 MHz
+constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
+
+#if defined CPU_LOG
+  constexpr double HMZ_FREQUENCY { 1790000.0 / 1000000.0 }; // 1.79 MHz
+#endif
 
 class BUS;
 
@@ -102,6 +107,14 @@ private:
   CPU(CPU&&)                 = delete;
   CPU& operator=(const CPU&) = delete;
   CPU& operator=(CPU&&)      = delete;
+
+private:
+
+#if defined CPU_LOG
+  uint64_t _cycle_counter { 0 };
+  double   _runtime_sec   { 0 };
+  std::stringstream _cpu_log;  
+#endif
 
 private:
 
@@ -276,29 +289,6 @@ public:
   ~CPU() noexcept = default;
 
 private:
-
-  /*
-   *
-   * Typedef
-   *
-   * uint16_t -> uint16_t
-   * uint8_t  -> uint8_t
-   * void     -> void
-   *
-   */
-
-  /*
-   * 
-   * @info   : Essa função mostra algumas informações, como, endereço atual apontado por PC, 
-   *           endereço atual da STACK e INSTRUÇÃO que foi executada 
-   *
-   * @return : void
-   *
-   * @param  : void
-   *
-   */
-
-  void sts(INSTRUCTION*) noexcept; 
 
   /*
    * 

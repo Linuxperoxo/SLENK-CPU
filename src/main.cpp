@@ -69,11 +69,12 @@ int main(int argc, char** argv)
    *
    */
   
+  new(_dma) DMA();
   new(_bus) BUS(_cpu, _ram, _dma);
   new(_ram) RAM();
   new(_cpu) CPU(_bus); // Aqui vai ter o primeiro ciclo do processador um RST
   new(_display) DISPLAY(_bus);
-
+  
   
   _ram->load_rom(argv[1]); // Carregando a ROM
   

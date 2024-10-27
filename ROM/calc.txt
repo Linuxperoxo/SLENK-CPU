@@ -1,0 +1,16 @@
+
+// Movendo um valor bruto para o registrador X 
+// MOV     // REG X   // VALUE (3)
+00000100   00000001   00000011
+
+// Movendo um valor bruto para o registrador Y 
+// MOV     // REG Y   // VALUE (2)
+00000100   00000010   00000010
+
+// Somando o registrador X com o Y
+// ADD     // REG X   // REG Y
+00001101   00000001   00000010
+
+// Sinalizando que o programa foi finalizado
+// BRK
+00001001

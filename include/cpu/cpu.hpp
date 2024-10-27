@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 25/10/2024                    | 
+ *    |  SRC MOD   : 27/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -73,11 +73,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string>
-#include <sstream>
 
-#define REGCODE_NUM 4
-#define OPCODE_NUM 0x0A
-#define BRK_OPCODE 0x09
+#define REGCODE_NUM 0x04
+#define OPCODE_NUM  0x12
+#define BRK_OPCODE  0x09
 
 /*
  *
@@ -93,10 +92,6 @@
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
 
-#if defined CPU_LOG
-  constexpr double HMZ_FREQUENCY { 1790000.0 / 1000000.0 }; // 1.79 MHz
-#endif
-
 class BUS;
 
 class CPU
@@ -107,14 +102,6 @@ private:
   CPU(CPU&&)                 = delete;
   CPU& operator=(const CPU&) = delete;
   CPU& operator=(CPU&&)      = delete;
-
-private:
-
-#if defined CPU_LOG
-  uint64_t _cycle_counter { 0 };
-  double   _runtime_sec   { 0 };
-  std::stringstream _cpu_log;  
-#endif
 
 private:
 
@@ -248,9 +235,11 @@ public:
     
     static INSTRUCTION _OPTABLE[OPCODE_NUM]
     {
-      {"RST", &CPU::RST}, {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
-      {"MOV", &CPU::MOV}, {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
-      {"PRT", &CPU::PRT}, {"BRK", &CPU::BRK}
+      {"RST", &CPU::RST},  {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
+      {"MOV", &CPU::MOV},  {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
+      {"PRT", &CPU::PRT},  {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  {"ADD", &CPU::ADD2},
+      {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  {"SUB", &CPU::SUB2},
+      {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}
     }; 
     
     /*
@@ -258,7 +247,9 @@ public:
      * OPCODES:
      *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
      *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
-     *  PRT : 0x08   BRK : 0x09
+     *  PRT : 0x08   BRK : 0x09    ADD : 0x0A    ADD : 0x0B
+     *  ADD : 0x0C   ADD : 0x0D    SUB : 0x0E    SUB : 0x0F
+     *  SUB : 0x10   ADD : 0x11
      *
      */
 
@@ -313,8 +304,18 @@ private:
    */
 
   void RST() noexcept; // Reseta o processador, modificando o PC e STKPTR
-  void ADD() noexcept; // Soma
-  void SUB() noexcept; // Subtração
+  
+  /*
+   */
+
+  void ADD() noexcept; void ADD2() noexcept; void ADD3() noexcept; void ADD4() noexcept;
+
+
+  /*
+   */
+
+  void SUB() noexcept; void SUB2() noexcept; void SUB3() noexcept; void SUB4() noexcept;
+
   void JMP() noexcept; // Pula PC para um endereço de memória 
   void POP() noexcept; // Desempilha elemento da stack 
   void PSH() noexcept; // Empilha elemento na stack

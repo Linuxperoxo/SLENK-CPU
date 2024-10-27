@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 25/10/2024                    |
+ *    |  SRC MOD   : 27/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -41,8 +41,8 @@ DISPLAY::DISPLAY(BUS* _bus) noexcept
 void DISPLAY::cycle() noexcept
 {
   char     _display_char    { '\0' };
-  uint8_t  _render_for_line { 1 };
-  uint16_t _count           { 1 };
+  uint8_t  _render_for_line { 0 };
+  uint16_t _count           { 0 };
 
   /*
    *
@@ -50,13 +50,18 @@ void DISPLAY::cycle() noexcept
    *
    */
 
-  std::stringstream _frame;
+  static std::stringstream _frame;
+
+  /*
+   *
+   * Para o display log
+   *
+   */
 
 #if defined SHOW_DISPLAY 
   static uint64_t _frames_render    { 0 };
   static uint64_t _dma_interruption { 0 };
-  
-  std::stringstream _log;
+  static std::stringstream _log;
 #endif
 
   /*
@@ -65,12 +70,12 @@ void DISPLAY::cycle() noexcept
    *
    */
 
-  _frame << "\n+=====================DISPLAY=====================+\n|";
+  _frame << "\n+======================DISPLAY=====================+\n|";
   
   while(_count <= DISPLAY_FRAMEBUFFER_SIZE)
   {
     _display_char = _BUS->cpu_interrupt_DMA(_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
-
+    
     #if defined DISPLAY_LOG
       ++_dma_interruption;
     #endif
@@ -94,52 +99,15 @@ void DISPLAY::cycle() noexcept
         ++_render_for_line;
         ++_count;
       }
-      
-      /*
-       *
-       * Fazendo correção da linha
-       *
-       */
-
-      _frame << ' ' << ' ';
     }
     
-    /*
-     *
-     * Isso serve para colocar o '|' quando os outros bytes do framebuffer são 0, isso vai ser melhorado
-     *
-     */
-
-    if(_display_char == '\0' && _BUS->cpu_interrupt_DMA(_frammebuffer_addrs + 1, READ_OP, 0, DISPLAY_DEVICE_ADDRS) == '\0')
-    {
-      while(_BUS->cpu_interrupt_DMA(++_frammebuffer_addrs + 1, READ_OP, 0, DISPLAY_DEVICE_ADDRS) == '\0' && _render_for_line < MAX_CHAR_FOR_LINE)
-      {
-        _frame << ' ';
-        
-        ++_render_for_line;
-        ++_count;
-        
-        #if defined DISPLAY_LOG
-          ++_dma_interruption;
-        #endif
-      }
-
-      /*
-       *
-       * Fazendo uma correção na primeira linha
-       *
-       */
-
-      if(_count <= MAX_CHAR_FOR_LINE) _frame << ' ' << ' ';
-    }
-
     /*
      *
      * A cada 50 caracteres vamos quebrar a linha
      *
      */
 
-    if(_render_for_line % MAX_CHAR_FOR_LINE == 0)
+    if(_render_for_line % MAX_CHAR_FOR_LINE == 0 && _render_for_line > 0)
     { 
       _frame << "|\n";
 
@@ -163,7 +131,7 @@ void DISPLAY::cycle() noexcept
        */
       
       _display_char = _BUS->cpu_interrupt_DMA(++_frammebuffer_addrs, READ_OP, 0, DISPLAY_DEVICE_ADDRS);
-
+      
       #if defined DISPLAY_LOG
         ++_dma_interruption;
       #endif
@@ -174,16 +142,11 @@ void DISPLAY::cycle() noexcept
        *
        */
 
-      _render_for_line = 1;
-      
-      /*
-       *
-       * Adicionamos mais 1 no count já que pulamos um caractere
-       *
-       */
-
-      ++_count;
+      _render_for_line = 0;
     }
+    
+    if(_display_char == '\0')
+      _display_char = ' ';
      
     _frame << _display_char;
 
@@ -192,7 +155,7 @@ void DISPLAY::cycle() noexcept
     ++_count;
   }
 
-  _frame << "+=================================================+\n";
+  _frame << "+==================================================+\n";
 
   /*
    *
@@ -249,4 +212,3 @@ void DISPLAY::clock_loop() noexcept
     _BUS->DMA_stopped();
   }
 }
-

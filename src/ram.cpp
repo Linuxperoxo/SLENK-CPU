@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 21/10/2024                    |
+ *    |  SRC MOD   : 27/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -143,8 +143,15 @@ void RAM::load_rom(const char* _rom_file) noexcept
        * Quando copiamos 1 byte do arquivo jogamos esse byte para a memória da rom
        *
        */
+      
+      /*
+      std::cout << "---------------------\n";
+      std::cout << "ADDRS : 0x800" << (_bits / 8) - 1 << '\n';
+      std::cout << "DATA  : " << static_cast<int>(_byte) << '\n';
+      std::cout << "---------------------\n";
+      */
 
-      _ROM[(_bits / 7) - 1] = _byte;
+      _ROM[(_bits / 8) - 1] = _byte;
       _byte                 = 0;
       _flip                 = 0;
     }

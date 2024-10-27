@@ -43,8 +43,8 @@
 #define BRK_INSTRUCTION_OPCODE          0x09
 #define ROM_INIT                        0x8000
 #define NANO_PER_SEC                    1e9
-#define MILLISECONDS_HOUSE              3
-#define NANOSECONDS_HOUSE               6
+#define MILLISECONDS_HOUSE              0x03
+#define NANOSECONDS_HOUSE               0x06
 
 typedef std::stringstream sstr;
 

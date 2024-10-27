@@ -45,7 +45,7 @@ class BUS;
  */
 
 //#define DISPLAY_LOG // Informações que eu vou usar no desenvolvimento, deixarei comentado por padrão 
-//#define SHOW_DISPLAY // Caso não queira que o display seja mostrado comente essa linha
+#define SHOW_DISPLAY // Caso não queira que o display seja mostrado comente essa linha
 
 constexpr uint16_t DISPLAY_FREQUENCY { 1000 / 1 }; // Frequencia de 1Hz   
 

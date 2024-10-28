@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 27/10/2024                    |
+ *    |  SRC MOD   : 28/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -31,7 +31,8 @@
 #define ROM_END 0xFFFF
 #define BYTE 8
 
-constexpr uint16_t _ROM_MAX_SIZE { ROM_END - ROM_INIT };
+constexpr uint16_t ROM_MAX_SIZE { ROM_END - ROM_INIT };
+constexpr uint32_t MEMORY_SIZE  { 1024 * 64 }; 
 
 RAM::RAM() noexcept
   : _MEMORY(nullptr),
@@ -45,7 +46,7 @@ RAM::RAM() noexcept
     std::cout << "Error to alloc memory for class RAM\n";
     exit(EXIT_FAILURE);
   }
-  std::memset(_MEMORY, 0x00, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
+  std::memset(_MEMORY, 0, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
 }
 
 RAM::~RAM() noexcept
@@ -87,9 +88,9 @@ void RAM::load_rom(const char* _rom_file) noexcept
    *
    */
 
-  if(_rom_file_info->st_size > _ROM_MAX_SIZE)
+  if(_rom_file_info->st_size > ROM_MAX_SIZE)
   {
-    std::cout << "ROM file -> " << _rom_file << " is very long he has " << _rom_file_info->st_size << "Bytes of size, he most have at most " << _ROM_MAX_SIZE << '\n';
+    std::cout << "ROM file -> " << _rom_file << " is very long he has " << _rom_file_info->st_size << "Bytes of size, he most have at most " << ROM_MAX_SIZE << '\n';
     exit(EXIT_FAILURE);
   }
 
@@ -127,6 +128,7 @@ void RAM::load_rom(const char* _rom_file) noexcept
    */
 
   delete _rom_file_info;
+  
   close(_file);
 
   uint16_t _bits { 0 }; // Vendo quantos bits nos copiamos
@@ -165,7 +167,7 @@ void RAM::load_rom(const char* _rom_file) noexcept
     _byte = _byte | (_ROM_BUFFER[_bits] - '0') << (7 - _flip);
   }
 
-  munmap(_ROM_BUFFER, _ROM_MAX_SIZE);
+  munmap(_ROM_BUFFER, _rom_file_size);
 
   /*
    *
@@ -187,4 +189,40 @@ void RAM::load_rom(const char* _rom_file) noexcept
    * exit(EXIT_FAILURE);
    *
    */
+}
+
+void RAM::load_firmware() noexcept
+{
+  /*
+   *
+   * Configurando o registrador STKPTR para o início da stack que é 0xFF 
+   *
+   * MOV STKPTR, 0xFF
+   *
+   */
+  
+  write(0x0000, 0x04); // MOV
+  write(0x0001, 0x04); // STKPTR
+  write(0x0002, 0xFF); // Valor a mover
+
+  /*
+   *
+   * Configurando o registrador PC para o início da ROM do programa
+   *
+   * JMP 0x8000
+   *
+   */ 
+
+  write(0x0003, 0x01); // JMP
+  write(0x0004, 0x80); // HIGH BYTE 
+  write(0x0005, 0x00); // LOWER BYTE
+}
+
+void RAM::load_firmware(const char* _firmware_file) noexcept
+{
+  /*
+   *
+   * Vou fazer ainda :^)
+   *
+   */ 
 }

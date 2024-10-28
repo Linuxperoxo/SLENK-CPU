@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 27/10/2024                    |
+ *    |  SRC MOD   : 28/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -37,9 +37,10 @@
 #define DISPLAY_FRAMEBUFFER_SIZE 0x12C
 #endif
 
-#define FIRST_ADDRS_TO_READ_INSTRUCTION 0x1000
-#define FIRST_INSTRUCTION_OPCODE        0x00
-#define FIRST_ADDRS_STACK_PTR           0xFF
+#if !defined STACK_PTR_ADDRS
+#define STACK_PTR_ADDRS 0xFF
+#endif
+
 #define BRK_INSTRUCTION_OPCODE          0x09
 #define ROM_INIT                        0x8000
 #define NANO_PER_SEC                    1e9
@@ -50,18 +51,8 @@ typedef std::stringstream sstr;
 
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
-  _BUS    = _bus_to_link;
-  _PC     = FIRST_ADDRS_TO_READ_INSTRUCTION;
-  _STKPTR = FIRST_ADDRS_STACK_PTR;
-
-  /*
-   *
-   * O primeiro ciclos de inicialização
-   *
-   */
-   
-  write(FIRST_ADDRS_TO_READ_INSTRUCTION, FIRST_INSTRUCTION_OPCODE); // Gravando a primeira instrução que é um RST
-  cycle();
+  _BUS = _bus_to_link;
+  _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
 }
 
 /*
@@ -263,9 +254,9 @@ void CPU::RST() noexcept
   _X               = 0x00;
   _Y               = 0x00;
   _S               = 0x00;
-  _STKPTR          = FIRST_ADDRS_STACK_PTR;
-  _PC              = ROM_INIT; 
-  _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
+  _STKPTR          = 0x00;
+  _PC              = 0x0000; 
+  _FRAMEBUFFER_PTR = 0x0000;
   _STATUS          = 0x00;
 }
 
@@ -353,7 +344,7 @@ void CPU::POP() noexcept
 {
   _S = read(_STKPTR);
 
-  if(_STKPTR + 1 <= FIRST_ADDRS_STACK_PTR)
+  if(_STKPTR + 1 <= STACK_PTR_ADDRS)
   {
     ++_STKPTR;
   }

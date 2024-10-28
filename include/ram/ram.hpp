@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 22/10/2024                    |
+ *    |  SRC MOD   : 28/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -55,7 +55,16 @@
 
 #include <cstdint>
 
-constexpr uint32_t MEMORY_SIZE { 1024 * 64 }; 
+/*
+ *
+ * Decidi que vou implementar a possibilidade de colocar firmware custom, esse projeto é educativo então quero
+ * que outras pessoas use ele para aprender também
+ *
+ * Por enquanto deixarei comentado 
+ *
+ */
+
+//#define USE_CUSTOM_FIRMWARE // Descomente caso queira usar o firmware custom
 
 class BUS;
 
@@ -119,8 +128,20 @@ public:
 
   void load_rom(const char*) noexcept;
 
+  /*
+   *
+   * Decidi começar a fazer uma implementação do nosso firmware que por enquanto está bem simples.
+   *
+   * Com esse firmware nós vamos configurar nosso hardware para começar a executar nosso programa.
+   *
+   * Essas funções vão servir para carregar nosso firmware
+   *
+   */
+  
+  void load_firmware() noexcept;
+  void load_firmware(const char*) noexcept;
+
   friend class BUS;
 };
 
 #endif
-

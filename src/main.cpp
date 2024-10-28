@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 25/10/2024                    |
+ *    |  SRC MOD   : 28/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -21,7 +21,7 @@
 #include "../include/cpu/cpu.hpp"
 #include "../include/display/display.hpp"
 
-#ifndef ROM_INIT
+#if !defined ROM_INIT
 #define ROM_INIT 0x8000
 #endif
 
@@ -76,8 +76,14 @@ int main(int argc, char** argv)
   new(_display) DISPLAY(_bus);
   
   
+  #if !defined USE_CUSTOM_FIRMWARE
+  _ram->load_firmware(); // Carregando firmware
+  #else
+  std::cout << "Custom firmware is not supported!\n";
+  exit(EXIT_FAILURE);
+  #endif
   _ram->load_rom(argv[1]); // Carregando a ROM
-  
+
   /*
    *
    * Aqui colocamos uma thread para cada parte, já que cada um tem um clock próprio   

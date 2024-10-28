@@ -1,0 +1,2 @@
+* Substituir as instruções que estão no construtor de CPU e fazer um loader para o firmware
+* Fazer um mapeamento de memória para o monitor e fazer um VRAM para ele

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 27/10/2024                    | 
+ *    |  SRC MOD   : 28/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -74,7 +74,7 @@
 #include <cstdlib>
 #include <string>
 
-#define REGCODE_NUM 0x04
+#define REGCODE_NUM 0x05
 #define OPCODE_NUM  0x12
 #define BRK_OPCODE  0x09
 
@@ -253,7 +253,7 @@ public:
      *
      */
 
-    return _opcode < 0 || _opcode > OPCODE_NUM - 1 ? &_OPTABLE[BRK_OPCODE] : &_OPTABLE[_opcode]; 
+    return _opcode >= 0 && _opcode < OPCODE_NUM? &_OPTABLE[_opcode] : &_OPTABLE[BRK_OPCODE]; 
   }
 
   inline uint8_t* register_decoder(uint8_t _regcode) noexcept
@@ -268,9 +268,18 @@ public:
 
     static uint8_t* _REGTABLE[REGCODE_NUM]
     {
-      &_A, &_X, &_Y, &_S
+      &_A, &_X, &_Y, &_S, &_STKPTR
     };
-    return _regcode < 0 || _regcode - 1 > REGCODE_NUM ? nullptr : _REGTABLE[_regcode];
+
+    /*
+     *
+     * REGCODES:
+     *  A      : 0x00   X : 0x01    Y : 0x02    S : 0x03
+     *  STKPTR : 0x04   
+     *
+     */
+
+    return _regcode >= 0 && _regcode < REGCODE_NUM ? _REGTABLE[_regcode] : nullptr;    
   }
 
 public:
@@ -447,4 +456,3 @@ public:
 };
 
 #endif
-

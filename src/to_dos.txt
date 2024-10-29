@@ -1,1 +1,0 @@
-* Fazer um mapeamento de memória para o monitor e fazer um VRAM para ele

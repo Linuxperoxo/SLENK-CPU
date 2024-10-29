@@ -5,8 +5,8 @@
  *    |                                            |
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
- *    |  FILE      : ram.hpp                       |
- *    |  SRC MOD   : 28/10/2024                    |
+ *    |  FILE      : memory.hpp                    |
+ *    |  SRC MOD   : 29/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -18,10 +18,10 @@
  * Aqui é a memória principal, e vai ser aqui também que nós vamos
  * manipular dispositivos mapeados na memória
  *
- * A memória RAM é dividida em célular de 1 byte de tamanho
+ * A memória MEMORY é dividida em célular de 1 byte de tamanho
  *
  * +--------------------------------------------------------------+
- * | 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x08 | -> RAM 
+ * | 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x08 | -> MEMORY 
  * +--------------------------------------------------------------+
  *
  * Normalmente dispositivos são mapeados nos endereços mais altos(depende do OS)
@@ -30,7 +30,7 @@
  * de 3 bytes
  *
  * +--------------------------------------------------------------+
- * | 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x08 | -> RAM 
+ * | 0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x08 | -> MEMORY 
  * +--------------------------------------------------------------+
  *                                       ^             ^
  *                                       |             |
@@ -50,8 +50,8 @@
  *
  */
 
-#ifndef __RAM_HPP__
-#define __RAM_HPP__
+#ifndef __MEMORY_HPP__
+#define __MEMORY_HPP__
 
 #include <cstdint>
 
@@ -68,25 +68,25 @@
 
 class BUS;
 
-class RAM
+class MEMORY
 {
 private:
 
-  RAM(const RAM&)            = delete;
-  RAM(RAM&&)                 = delete;
-  RAM& operator=(const RAM&) = delete;
-  RAM& operator=(RAM&&)      = delete;
+  MEMORY(const MEMORY&)            = delete;
+  MEMORY(MEMORY&&)                 = delete;
+  MEMORY& operator=(const MEMORY&) = delete;
+  MEMORY& operator=(MEMORY&&)      = delete;
 
 private:
 
-  uint8_t* _MEMORY;
+  uint8_t* _RAM;
   uint8_t* _ROM;
 
 public:
 
-  explicit RAM() noexcept;
+  explicit MEMORY() noexcept;
 
-  ~RAM() noexcept;
+  ~MEMORY() noexcept;
 
 private:
 
@@ -100,7 +100,7 @@ private:
  *
  */
 
-  inline uint8_t read(uint16_t _addrs_to_read) noexcept { return _MEMORY[_addrs_to_read]; }
+  inline uint8_t read(uint16_t _addrs_to_read) noexcept { return _RAM[_addrs_to_read]; }
 
 /*
  *
@@ -112,7 +112,7 @@ private:
  *
  */
 
-  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept { _MEMORY[_addrs_to_write] = _data_to_write; }
+  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept { _RAM[_addrs_to_write] = _data_to_write; }
 
 public:
 

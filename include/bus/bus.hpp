@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : bus.hpp                       |
- *    |  SRC MOD   : 24/10/2024                    |
+ *    |  SRC MOD   : 29/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -51,7 +51,7 @@
 #include <cstdint>
 
 #include "../cpu/cpu.hpp"
-#include "../ram/ram.hpp"
+#include "../memory/memory.hpp"
 #include "../dma/dma.hpp"
 #include "../display/display.hpp"
 
@@ -73,12 +73,12 @@ private:
   */
 
   CPU*     _CPU;
-  RAM*     _RAM;
+  MEMORY*  _MEMORY;
   DMA*     _DMA;
 
 public:
 
-  explicit BUS(CPU*, RAM*, DMA*) noexcept;
+  explicit BUS(CPU*, MEMORY*, DMA*) noexcept;
 
   ~BUS() noexcept = default;
  
@@ -86,7 +86,7 @@ private:
   
   /*
    * 
-   *  @info   : Função que vai lé um determinado bloco na memória RAM
+   *  @info   : Função que vai lé um determinado bloco na memória MEMORY
    *
    *  @return : uint8_t -> Esse processador é de 8 bits, por isso como 
    *            retorno ele retorna um uint8_t, porém, ele usa endereçamento 
@@ -101,7 +101,7 @@ private:
   /*
    *
    *  @info   : Função que vai escrever um dado em um determinado bloco na
-   *            memória RAM
+   *            memória MEMORY
    *
    *  @return : Void
    *
@@ -131,7 +131,7 @@ private:
    *
    */ 
 
-  inline void    configure_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept { _DMA->DMA_C(_first_addrs, _type, _data); }
+  inline void configure_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data) noexcept { _DMA->DMA_C(_first_addrs, _type, _data); }
 
 public: 
 
@@ -141,7 +141,7 @@ public:
    *
    */
 
-  inline uint8_t    cpu_interrupt_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data, uint8_t _IO_device_addrs) noexcept { return _CPU->DMA_interruption(_first_addrs, _type, _data, _IO_device_addrs); }
+  inline uint8_t cpu_interrupt_DMA(uint16_t _first_addrs, uint8_t _type, uint8_t _data, uint8_t _IO_device_addrs) noexcept { return _CPU->DMA_interruption(_first_addrs, _type, _data, _IO_device_addrs); }
   
   /*
    *
@@ -149,7 +149,7 @@ public:
    *
    */
 
-  inline void       DMA_stopped() noexcept { _CPU->DMA_stopped(); }
+  inline void DMA_stopped() noexcept { _CPU->DMA_stopped(); }
 
   /*
    *
@@ -157,7 +157,7 @@ public:
    *
    */
 
-  inline void       DMA_started() noexcept { _CPU->DMA_started(); }
+  inline void DMA_started() noexcept { _CPU->DMA_started(); }
   
 private:
 

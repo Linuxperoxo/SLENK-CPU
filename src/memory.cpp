@@ -5,8 +5,8 @@
  *    |                                            |
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
- *    |  FILE      : ram.cpp                       |
- *    |  SRC MOD   : 28/10/2024                    |
+ *    |  FILE      : memory.cpp                    |
+ *    |  SRC MOD   : 29/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -22,7 +22,7 @@
 #include <unistd.h> // close()
 #include <sys/stat.h> // fstat()
 
-#include "../include/ram/ram.hpp"
+#include "../include/memory/memory.hpp"
 
 #ifndef ROM_INIT
 #define ROM_INIT 0x8000
@@ -34,27 +34,27 @@
 constexpr uint16_t ROM_MAX_SIZE { ROM_END - ROM_INIT };
 constexpr uint32_t MEMORY_SIZE  { 1024 * 64 }; 
 
-RAM::RAM() noexcept
-  : _MEMORY(nullptr),
+MEMORY::MEMORY() noexcept
+  : _RAM(nullptr),
     _ROM(nullptr)
 {
-  _MEMORY     = static_cast<uint8_t*>(mmap(nullptr, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
-  _ROM        = static_cast<uint8_t*>(_MEMORY + ROM_INIT);
+  _RAM = static_cast<uint8_t*>(mmap(nullptr, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
+  _ROM = static_cast<uint8_t*>(_RAM + ROM_INIT);
   
-  if(_MEMORY == MAP_FAILED)
+  if(_RAM == MAP_FAILED)
   {
-    std::cout << "Error to alloc memory for class RAM\n";
+    std::cout << "Error to alloc memory for class MEMORY\n";
     exit(EXIT_FAILURE);
   }
-  std::memset(_MEMORY, 0, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
+  std::memset(_RAM, 0, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
 }
 
-RAM::~RAM() noexcept
+MEMORY::~MEMORY() noexcept
 {
-  munmap(_MEMORY, MEMORY_SIZE);
+  munmap(_RAM, MEMORY_SIZE);
 }
 
-void RAM::load_rom(const char* _rom_file) noexcept
+void MEMORY::load_rom(const char* _rom_file) noexcept
 {
   int _file
   {
@@ -191,7 +191,7 @@ void RAM::load_rom(const char* _rom_file) noexcept
    */
 }
 
-void RAM::load_firmware() noexcept
+void MEMORY::load_firmware() noexcept
 {
   /*
    *
@@ -218,7 +218,7 @@ void RAM::load_firmware() noexcept
   write(0x0005, 0x00); // LOWER BYTE
 }
 
-void RAM::load_firmware(const char* _firmware_file) noexcept
+void MEMORY::load_firmware(const char* _firmware_file) noexcept
 {
   /*
    *

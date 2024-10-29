@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 28/10/2024                    |
+ *    |  SRC MOD   : 29/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -51,17 +51,17 @@ int main(int argc, char** argv)
   CPU* _cpu { static_cast<CPU*>(std::malloc(sizeof(CPU))) };
   if(_cpu == nullptr) { std::cerr << "Error to alloc memory for CPU class\n"; exit(EXIT_FAILURE); }
   
-  RAM* _ram { static_cast<RAM*>(std::malloc(sizeof(RAM))) };
-  if(_ram == nullptr) { std::free(_cpu); std::cout << "Error to alloc memory for RAM class\n"; exit(EXIT_FAILURE); }
+  MEMORY* _memory { static_cast<MEMORY*>(std::malloc(sizeof(MEMORY))) };
+  if(_memory == nullptr) { std::free(_cpu); std::cout << "Error to alloc memory for RAM class\n"; exit(EXIT_FAILURE); }
 
   DMA* _dma { static_cast<DMA*>(std::malloc(sizeof(DMA))) };
-  if(_ram == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for DMA struct\n"; exit(EXIT_FAILURE); }
+  if(_memory == nullptr) { std::free(_cpu); std::free(_memory); std::cout << "Error to alloc memory for DMA struct\n"; exit(EXIT_FAILURE); }
   
   BUS* _bus { static_cast<BUS*>(std::malloc(sizeof(BUS))) };
-  if(_bus == nullptr) { std::free(_cpu); std::free(_ram); std::cout << "Error to alloc memory for BUS class\n"; exit(EXIT_FAILURE); }
+  if(_bus == nullptr) { std::free(_cpu); std::free(_memory); std::cout << "Error to alloc memory for BUS class\n"; exit(EXIT_FAILURE); }
   
   DISPLAY* _display { static_cast<DISPLAY*>(std::malloc(sizeof(DISPLAY))) };
-  if(_display == nullptr) { std::free(_cpu); std::free(_ram); std::free(_bus); std::cout << "Error to alloc memory for DISPLAY class\n"; exit(EXIT_FAILURE); }
+  if(_display == nullptr) { std::free(_cpu); std::free(_memory); std::free(_bus); std::cout << "Error to alloc memory for DISPLAY class\n"; exit(EXIT_FAILURE); }
 
   /*
    *
@@ -70,19 +70,19 @@ int main(int argc, char** argv)
    */
   
   new(_dma) DMA();
-  new(_bus) BUS(_cpu, _ram, _dma);
-  new(_ram) RAM();
-  new(_cpu) CPU(_bus); // Aqui vai ter o primeiro ciclo do processador um RST
+  new(_bus) BUS(_cpu, _memory, _dma);
+  new(_memory) MEMORY();
+  new(_cpu) CPU(_bus);
   new(_display) DISPLAY(_bus);
   
   
   #if !defined USE_CUSTOM_FIRMWARE
-  _ram->load_firmware(); // Carregando firmware
+  _memory->load_firmware(); // Carregando firmware
   #else
   std::cout << "Custom firmware is not supported!\n";
   exit(EXIT_FAILURE);
   #endif
-  _ram->load_rom(argv[1]); // Carregando a ROM
+  _memory->load_rom(argv[1]); // Carregando a ROM do programa
 
   /*
    *
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
    */
 
   _cpu->~CPU();
-  _ram->~RAM();
+  _memory->~MEMORY();
   _bus->~BUS();
   _display->~DISPLAY();
   _dma->~DMA();
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
    */
 
   std::free(_cpu);
-  std::free(_ram);
+  std::free(_memory);
   std::free(_bus);
   std::free(_display);
   std::free(_dma);

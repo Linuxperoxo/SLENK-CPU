@@ -170,13 +170,13 @@ void CPU::cycle() noexcept
      
     /*
      *
-     * Simples contador de runtime só para ter uma noção 
+     * Simples contador de runtime só para ter uma noção do tempo de execução
      *
      */
 
     /*
      *
-     * Aqui faço incrimento 558 nanosegundos ao _runtime, 558 pois é o tempo de cada ciclo
+     * Aqui faço incremento de 558 nanosegundos ao _runtime, 558 que é o tempo de cada ciclo
      *
      * Como estamos trabalhando com segundos dividimos 558.0 por 1.10^9 já que 1 nanosegundo é
      * 0.000000001 segundos

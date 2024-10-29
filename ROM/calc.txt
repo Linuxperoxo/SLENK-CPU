@@ -11,6 +11,10 @@
 // ADD     // REG X   // REG Y
 00001101   00000001   00000010
 
+// Mandando o resultado para o display
+// MOV     // 0x7000         // REG A
+00000111   0111000000000000  00000000
+
 // Sinalizando que o programa foi finalizado
 // BRK
 00001001

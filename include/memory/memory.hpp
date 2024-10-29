@@ -55,6 +55,11 @@
 
 #include <cstdint>
 
+#define ROM_INIT      0x8000
+#define ROM_END       0xFFFF
+#define FIRMWARE_INIT 0x0000
+#define FIRMWARE_END  0x0400
+
 /*
  *
  * Decidi que vou implementar a possibilidade de colocar firmware custom, esse projeto é educativo então quero
@@ -82,6 +87,15 @@ private:
   uint8_t* _RAM;
   uint8_t* _ROM;
 
+  /*
+   *
+   * Vou usar essa variável apenas para escrever na ROM 1 vez, isso não acontece realmente
+   * mas só decidi usar isso para n~ao precisar usar uma arquivo separado como ROM
+   *
+   */
+
+  uint8_t  _WR;
+
 public:
 
   explicit MEMORY() noexcept;
@@ -100,7 +114,10 @@ private:
  *
  */
 
-  inline uint8_t read(uint16_t _addrs_to_read) noexcept { return _RAM[_addrs_to_read]; }
+  inline uint8_t read(uint16_t _addrs_to_read) noexcept
+  { 
+    return _RAM[_addrs_to_read]; 
+  }
 
 /*
  *
@@ -112,7 +129,18 @@ private:
  *
  */
 
-  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept { _RAM[_addrs_to_write] = _data_to_write; }
+  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
+  {
+    /*
+     *
+     * Como so vamos escrever na ROM apenas uma vez usamos esse _WR para poder fazer isso,
+     * porém nunca mais isso vai poder ser feito durante a execução do programa
+     *
+     */
+
+    if(_WR == 1 || _addrs_to_write < ROM_INIT && _addrs_to_write > FIRMWARE_END)
+      _RAM[_addrs_to_write] = _data_to_write; 
+  }
 
 public:
 

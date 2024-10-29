@@ -24,13 +24,6 @@
 
 #include "../include/memory/memory.hpp"
 
-#ifndef ROM_INIT
-#define ROM_INIT 0x8000
-#endif
-
-#define ROM_END 0xFFFF
-#define BYTE 8
-
 constexpr uint16_t ROM_MAX_SIZE { ROM_END - ROM_INIT };
 constexpr uint32_t MEMORY_SIZE  { 1024 * 64 }; 
 
@@ -40,7 +33,8 @@ MEMORY::MEMORY() noexcept
 {
   _RAM = static_cast<uint8_t*>(mmap(nullptr, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
   _ROM = static_cast<uint8_t*>(_RAM + ROM_INIT);
-  
+  _WR  = 1;
+
   if(_RAM == MAP_FAILED)
   {
     std::cout << "Error to alloc memory for class MEMORY\n";
@@ -195,6 +189,13 @@ void MEMORY::load_firmware() noexcept
 {
   /*
    *
+   * Não queria fazer um arquivo separado para ser usado como firmware
+   * então fiz assim mesmo :)
+   *
+   */
+
+  /*
+   *
    * Configurando o registrador STKPTR para o início da stack que é 0xFF 
    *
    * MOV STKPTR, 0xFF
@@ -216,6 +217,15 @@ void MEMORY::load_firmware() noexcept
   write(0x0003, 0x01); // JMP
   write(0x0004, 0x80); // HIGH BYTE 
   write(0x0005, 0x00); // LOWER BYTE
+
+  /*
+   *
+   * Definindo esse bit como 0 já que não podemos mais acessar qualquer local da memória, 
+   * apenas usamos ele para escrever um firmware de maneira mais fácil
+   *
+   */
+
+  _WR = 0;
 }
 
 void MEMORY::load_firmware(const char* _firmware_file) noexcept

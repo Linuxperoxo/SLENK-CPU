@@ -37,7 +37,9 @@ case "${1}" in
   ;;
 
   *)
-    echo "build -> to compile source"
-    echo "clean -> to clean build directory"
+    echo "/===================================O"
+    echo "| build -> to compile source        |"
+    echo "| clean -> to clean build directory |"
+    echo "O===================================/"
   ;;
 esac

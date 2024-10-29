@@ -158,6 +158,12 @@ void CPU::cycle() noexcept
      *
      */
     
+    /*
+     *
+     * sstr -> std::stringstream
+     *
+     */
+    
     static uint64_t _cycle_counter { 0 };
     static double   _runtime_sec   { 0 };
     static sstr     _cpu_log; 

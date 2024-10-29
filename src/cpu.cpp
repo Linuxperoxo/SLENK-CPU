@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 28/10/2024                    |
+ *    |  SRC MOD   : 29/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -234,6 +234,11 @@ uint8_t CPU::BYTE2() noexcept
 uint8_t CPU::BYTE3() noexcept
 {
   return read(_PC + 3);
+}
+
+uint8_t CPU::BYTE4() noexcept
+{
+  return read(_PC + 4);
 }
 
 /*
@@ -486,10 +491,10 @@ void CPU::MOV4() noexcept
 {
   uint16_t _buffer;
 
-  _buffer = (_buffer | BYTE2()) << 8;
-  _buffer = (_buffer | BYTE3());
+  _buffer = (_buffer | BYTE1()) << 8;
+  _buffer = (_buffer | BYTE2());
 
-  write(_buffer, *register_decoder(BYTE1()));
+  write(_buffer, *register_decoder(BYTE3()));
 
   _PC += 4;
 }

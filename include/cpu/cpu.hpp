@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 28/10/2024                    | 
+ *    |  SRC MOD   : 29/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -346,7 +346,7 @@ private:
    * 3. Mover dado de uma área da memória para um registrador(MOV3)
    *    EXEMPLO : MOV A, 0x80FF
    *
-   * 3. Mover dado de um registrador para uma área da memória
+   * 4. Mover dado de um registrador para uma área da memória
    *    EXEMPLO : MOV 0x80FF, A
    *
    */
@@ -358,17 +358,18 @@ private:
    *
    * Funções para facilitar 
    *
-   * Aqui podemos ler o 1, 2 e 3 byte após a instrução 
+   * Aqui podemos ler o 1, 2, 3 e 4 byte após a instrução 
    *
    */
 
   uint8_t BYTE1() noexcept;
   uint8_t BYTE2() noexcept; 
   uint8_t BYTE3() noexcept; 
-  
+  uint8_t BYTE4() noexcept;
+
   /*
    *
-   * @info   : Executa a instrução que está no contador de programas PC, 1 ciclo
+   * @info   : Executa a instrução que está no contador de programa PC, 1 ciclo
    *
    * @return : void
    *

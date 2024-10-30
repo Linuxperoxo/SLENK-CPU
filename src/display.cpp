@@ -58,7 +58,7 @@ void DISPLAY::cycle() noexcept
    *
    */
 
-#if defined SHOW_DISPLAY 
+#if defined DISPLAY_LOG 
   static uint64_t _frames_render    { 0 };
   static uint64_t _dma_interruption { 0 };
   static std::stringstream _log;
@@ -184,6 +184,9 @@ void DISPLAY::cycle() noexcept
   std::cout << "\n+---------DISPLAY-LOG---------+\n";
   std::cout << _log.str();
   std::cout << "+-----------------------------+\n";
+
+  _log.str("");
+  _log.clear();
 #endif
   
   /*

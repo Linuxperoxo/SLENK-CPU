@@ -80,7 +80,7 @@ uint8_t CPU::read(uint16_t _data_to_read) noexcept
 
   /*
    *
-   * A mesma coisa aqui
+   * Bloqueamos aqui também
    *
    */
 
@@ -151,6 +151,8 @@ void CPU::cycle() noexcept
   };
 
   #if defined(CPU_LOG)
+  
+  #define FIX 113.3
     
     /*
      *
@@ -191,7 +193,7 @@ void CPU::cycle() noexcept
     _cpu_log << "CYCLE COUNTER : \"" << std::dec << ++_cycle_counter << "\" \n";
     _cpu_log << "CPU CLOCK     : \"" << std::fixed << std::setprecision(2) << HMZ_FREQUENCY << "MHz\" \n";
     _cpu_log << "CPU RUNTIME   : \"" << std::fixed << std::setprecision(NANOSECONDS_HOUSE) << _runtime_sec << "sec\"\n";
-    _cpu_log << "REAL RUNTIME  : \"" << std::fixed << std::setprecision(NANOSECONDS_HOUSE) << _runtime_sec * 115 << "sec\"\n";
+    _cpu_log << "REAL RUNTIME  : \"" << std::fixed << std::setprecision(NANOSECONDS_HOUSE) << _runtime_sec * FIX << "sec\"\n";
 
     std::cout << "\n+--------CPU-INSTRUCTION-LOG--------+\n";
     std::cout << _cpu_log.str();
@@ -199,7 +201,6 @@ void CPU::cycle() noexcept
     std::cout.flush();  
 
     _cpu_log.str("");
-    _cpu_log.clear();
   #endif
   
   (this->*_instruction->_instruct_ptr)(); // Executando instrução selecionada pelo instruction decoder  

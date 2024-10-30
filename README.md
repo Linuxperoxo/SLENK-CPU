@@ -1,6 +1,6 @@
-# Projeto LITTLE_CPU
+# Projeto SLENK-CPU
 
-Este projeto foi criado com o intuito de estudo e compreensão dos princípios de funcionamento de um processador. O objetivo não é desenvolver um processador funcional, mas sim simular e entender suas operações.
+Este projeto foi criado com o intuito de estudo e compreensão dos princípios de funcionamento de um processador. O objetivo é simular e entender suas operações e seu funcionamento.
 
 ## O que é o processador 6502?
 
@@ -47,7 +47,7 @@ Como documentação você pode ler os arquivos .hpp em include/.
 
 Ordem de leitura recomendada:  
 
-1. include/ram/ram.hpp;  
+1. include/memory/memory.hpp;  
 2. include/bus/bus.hpp;  
 3. include/cpu/cpu.hpp;  
 

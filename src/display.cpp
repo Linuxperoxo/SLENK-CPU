@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 27/10/2024                    |
+ *    |  SRC MOD   : 30/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -147,7 +147,7 @@ void DISPLAY::cycle() noexcept
     
     if(_display_char == '\0')
       _display_char = ' ';
-     
+    
     _frame << _display_char;
 
     ++_frammebuffer_addrs;

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 29/10/2024                    |
+ *    |  SRC MOD   : 30/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -41,11 +41,11 @@
 #define STACK_PTR_ADDRS 0xFF
 #endif
 
-#define BRK_INSTRUCTION_OPCODE          0x09
-#define ROM_INIT                        0x8000
-#define NANO_PER_SEC                    1e9
-#define MILLISECONDS_HOUSE              0x03
-#define NANOSECONDS_HOUSE               0x06
+#define BRK_INSTRUCTION_OPCODE 0x09
+#define ROM_INIT               0x8000
+#define NANO_PER_SEC           1e9
+#define MILLISECONDS_HOUSE     0x03
+#define NANOSECONDS_HOUSE      0x06
 
 typedef std::stringstream sstr;
 
@@ -339,8 +339,10 @@ void CPU::SUB4() noexcept
 
 void CPU::JMP() noexcept
 {
-  uint16_t _buffer = (_buffer | BYTE1()) << 8;
-  _buffer          = (_buffer | BYTE2());
+  uint16_t _buffer; 
+  
+  _buffer  = (_buffer | BYTE1()) << 8;
+  _buffer |= BYTE2();
   
   _PC = _buffer;
 }
@@ -485,8 +487,8 @@ void CPU::MOV3() noexcept
 {
   uint16_t _buffer;
 
-  _buffer = (_buffer | BYTE2()) << 8;
-  _buffer = (_buffer | BYTE3());
+  _buffer  = (_buffer | BYTE2()) << 8;
+  _buffer |= BYTE3();
 
   *register_decoder(BYTE1()) = read(_buffer);
 
@@ -497,11 +499,22 @@ void CPU::MOV4() noexcept
 {
   uint16_t _buffer;
 
-  _buffer = (_buffer | BYTE1()) << 8;
-  _buffer = (_buffer | BYTE2());
+  _buffer  = (_buffer | BYTE1()) << 8;
+  _buffer |= BYTE2();
 
   write(_buffer, *register_decoder(BYTE3()));
 
   _PC += 4;
 }
 
+void CPU::MOV5() noexcept
+{
+  uint16_t _buffer;
+
+  _buffer  = (_buffer | BYTE1()) << 8; 
+  _buffer |= BYTE2();
+
+  write(_buffer, BYTE3());
+
+  _PC += 4;
+}

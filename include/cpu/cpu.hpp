@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 29/10/2024                    | 
+ *    |  SRC MOD   : 30/10/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -75,8 +75,8 @@
 #include <string>
 
 #define REGCODE_NUM 0x05
-#define OPCODE_NUM  0x12
-#define BRK_OPCODE  0x09
+#define OPCODE_NUM  0x13
+#define BRK_OPCODE  0x0A
 
 /*
  *
@@ -88,7 +88,7 @@
  *
  */
 
-#define CPU_LOG
+//#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
 
@@ -237,9 +237,9 @@ public:
     {
       {"RST", &CPU::RST},  {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
       {"MOV", &CPU::MOV},  {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
-      {"PRT", &CPU::PRT},  {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  {"ADD", &CPU::ADD2},
-      {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  {"SUB", &CPU::SUB2},
-      {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}
+      {"MOV", &CPU::MOV5}, {"PRT", &CPU::PRT},  {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  
+      {"ADD", &CPU::ADD2}, {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  
+      {"SUB", &CPU::SUB2}, {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}
     }; 
     
     /*
@@ -247,9 +247,9 @@ public:
      * OPCODES:
      *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
      *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
-     *  PRT : 0x08   BRK : 0x09    ADD : 0x0A    ADD : 0x0B
-     *  ADD : 0x0C   ADD : 0x0D    SUB : 0x0E    SUB : 0x0F
-     *  SUB : 0x10   ADD : 0x11
+     *  MOV : 0x08   PRT : 0x09    BRK : 0x0A    ADD : 0x0B    
+     *  ADD : 0x0C   ADD : 0x0D    ADD : 0x0E    SUB : 0x0F    
+     *  SUB : 0x10   SUB : 0x11    ADD : 0x12
      *
      */
 
@@ -349,9 +349,12 @@ private:
    * 4. Mover dado de um registrador para uma área da memória
    *    EXEMPLO : MOV 0x80FF, A
    *
+   * 5. Mover dado bruto para uma área da memória
+   *    EXEMPLO : MOV 5, 0x80FF
+   *
    */
 
-  void MOV() noexcept; void MOV2() noexcept; void MOV3() noexcept; void MOV4() noexcept;
+  void MOV() noexcept; void MOV2() noexcept; void MOV3() noexcept; void MOV4() noexcept; void MOV5() noexcept;
 
 
   /*

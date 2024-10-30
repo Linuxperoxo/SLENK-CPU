@@ -54,7 +54,7 @@ int main()
 
   char _char_to_convert[CHAR_NUM]
   {
-    'H', 'E', 'L', 'L', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
+    '2', '3', '+', '=', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
   };
 
   for(int i { 0 }; i < CHAR_NUM + 3; i++){

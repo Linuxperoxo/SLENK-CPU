@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : convert_bin.cpp               |
- *    |  SRC MOD   : 16/10/2024                    |
+ *    |  SRC MOD   : 30/10/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -54,7 +54,7 @@ int main()
 
   char _char_to_convert[CHAR_NUM]
   {
-    '2', '3', '+', '=', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
+    'H', 'E', 'L', 'L', 'O', ',', ' ', 'W', 'O', 'R', 'L', 'D', '!', '\n'
   };
 
   for(int i { 0 }; i < CHAR_NUM + 3; i++){

@@ -1,0 +1,4 @@
+MOV [Y] [0x0A];
+MOV [X] [0x0F];
+ADD [Y] [X];
+MOV [0x8001] [A];

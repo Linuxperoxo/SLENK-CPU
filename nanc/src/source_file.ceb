@@ -1,4 +1,5 @@
-MOV [Y] [0x0A];
-MOV [X] [0x0F];
-ADD [Y] [X];
-MOV [0x8001] [A];
+MOV [A] [2];
+MOV [A] [X];
+MOV [A] [*0x80FF];
+MOV [*0x80FF] [A];
+MOV [*0x80FF] [*0x80FF];

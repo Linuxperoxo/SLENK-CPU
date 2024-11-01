@@ -18,6 +18,12 @@
  *
  *    CHANGE LOG 0.0-1:
  *      * Adicionado funções básicas como: Remoção de espaços e quebra de linhas no arquivo e dividindo o arquivo em tokens;
+ *      * Adicionado um decoder para saber qual variação da instrução MOV usar;
+ *
+ *   TO DOS 0.0-1:
+ *    * Fazer o decoder para as outras instruçoes;
+ *    * Fazer o decoder para as outras instruções que possue diversas variações;
+ *    * Traduzir para o binário;
  *
  */
 
@@ -54,6 +60,7 @@
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -62,9 +69,94 @@
 #include <string>
 #include <vector>
 
-#define COMPILER_EXEC     argv[0]
 #define SOURCE_FILE       argv[1]
 #define CANEBLY_EXTENSION "ceb" 
+
+#define OPTABLE_SIZE         0x13
+#define REGTABLE_SIZE        0x05
+#define INSTRUCTION_VARIABLE 0x03
+#define FUNCTIONS_DECODER    0x03
+
+/*
+ *
+ * Error codes
+ *
+ */
+
+#define SYNTAX_ERROR      0xFF
+#define SOURCE_FILE_ERROR 0xFE
+
+void mov_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict);
+void add_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict) {}
+void sub_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict) {}
+
+/*
+ *
+ * Essa parte pode ser bem complexa, talvez até mais que devia, mas foi a
+ * forma que eu encontrei para lidar com instruções que podem ter várias 
+ * variações, como o MOV
+ *
+ */
+
+static std::string _instruction_name[OPTABLE_SIZE]
+{
+  "RST",  "JMP",  "POP",  "PSH",
+  "MOV",  "MOV2", "MOV3", "MOV4",
+  "MOV5", "PRT",  "BRK",  "ADD",
+  "ADD2", "ADD3", "ADD4", "SUB",
+  "SUB2", "SUB3", "SUB4"
+};
+
+static std::string _reg_name[REGTABLE_SIZE]
+{
+  "A", "X", "Y", "S", 
+  "STK" 
+};
+
+static std::string _instructions_with_variable[INSTRUCTION_VARIABLE]
+{
+  "MOV", "ADD", "SUB"
+};
+
+static uint8_t _optable[OPTABLE_SIZE]
+{
+  0x00, 0x01, 0x02, 0x03,
+  0x04, 0x05, 0x06, 0x07,
+  0x08, 0x09, 0x0A, 0x0B,
+  0x0C, 0x0D, 0x0E, 0x0F,
+  0x10, 0x11, 0x12
+};
+
+static uint8_t _regtable[REGTABLE_SIZE]
+{
+  0x00, 0x01, 0x02, 0x03, 
+  0x04
+};
+
+static void (*_functions_decoder[FUNCTIONS_DECODER])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
+{
+  &mov_decoder, &add_decoder, &sub_decoder
+};
+
+void instruction_decoder(std::string* _instruction_name, const std::string* _arg1, const std::string* _arg2) noexcept
+{
+  /*
+   *
+   * Definimos com um valor qualquer só para ver se ele foi alterado
+   *
+   */
+
+  uint8_t _instruction_variable { 10 };
+
+  for(uint8_t _i { 0 }; _i < INSTRUCTION_VARIABLE; _i++)
+  {
+    if(_instructions_with_variable[_i] == *_instruction_name) { _instruction_variable = _i; break; } 
+  }
+
+  if(_instruction_variable == 10) { return; }
+
+  _functions_decoder[_instruction_variable](_instruction_name, _arg1, _arg2);
+}
 
 struct Token
 {
@@ -85,6 +177,8 @@ struct Token
      * Ainda vou fazer :)
      *
      */
+
+    instruction_decoder(&_name, &_arg1, &_arg2);
   }
 };
 
@@ -102,7 +196,7 @@ void remove_spaces(uint8_t* __restrict _source_file, uint8_t* __restrict _source
   }
 }
 
-void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const uint32_t _source_file_size) noexcept
+void tokenize(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint32_t _source_file_size) noexcept
 {
   /*
    *
@@ -111,7 +205,7 @@ void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const ui
    * EXEMPLO:
    *  ARQUIVO FONTE:
    *    MOV [A] [X];
-   *    MOV [B] [0x8010];
+   *    MOV [B] [*0x8010];
    *
    * Devemos organizar a instrução e seus argumentos, no final ficará mais ou menos assim:
    *  
@@ -121,7 +215,7 @@ void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const ui
    *
    *  INSTRUCTION : MOV
    *  ARG1        : B
-   *  ARG2        : 0x8010
+   *  ARG2        : *0x8010
    *
    */
 
@@ -146,7 +240,7 @@ void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const ui
      *
      */
 
-    if(std::isalpha(_source_file[_i]))
+    if(std::isalpha(_source_file[_i]) || _source_file[_i] == '*')
     {
       if(_inside_key_arg1)
       {
@@ -180,7 +274,7 @@ void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const ui
         _inside_key_arg1       = false;
       }
     } else if(_source_file[_i] == ';'){
-      _tokens.push_back({_current_instruction_name, _current_instruction_arg1, _current_instruction_arg2});
+      _tokens->push_back({_current_instruction_name, _current_instruction_arg1, _current_instruction_arg2});
 
       _current_instruction_name.clear();
       _current_instruction_arg1.clear();
@@ -192,8 +286,53 @@ void tokenize(const uint8_t* _source_file, std::vector<Token>& _tokens, const ui
   }
 }
 
+/*
+ *
+ * Para verificar se é um registrador válido
+ *
+ */
+
+bool check_valid_reg(const std::string* _reg) noexcept
+{
+  for(uint8_t _i { 0 }; _i < REGTABLE_SIZE; _i++)
+  {
+    if(_reg_name[_i] == *_reg) { return true; }
+  }
+  return false;
+}
+
+/*
+ *
+ * Funções para verificar qual variação vamos usar, isso serve
+ * para apenas algumas instruções
+ *
+ */
+
+void mov_decoder(std::string* __restrict _instruction_name, const std::string* __restrict _arg1, const std::string* __restrict _arg2)
+{
+  if(check_valid_reg(_arg1) && !check_valid_reg(_arg2) && (*_arg2)[0] != '*') 
+  { *_instruction_name = "MOV1"; }
+  else if(check_valid_reg(_arg1) && check_valid_reg(_arg2))
+  { *_instruction_name = "MOV2"; }
+  else if(check_valid_reg(_arg1) && !check_valid_reg(_arg2) && (*_arg2)[0] == '*')
+  { *_instruction_name = "MOV3"; }
+  else if(check_valid_reg(_arg2) && !check_valid_reg(_arg1) && (*_arg1)[0] == '*')
+  { *_instruction_name = "MOV4"; }
+  else
+  { std::cerr << "Syntax Error -> " << *_instruction_name << ' ' << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR); }
+}
+
 int main (int argc, char** argv) noexcept 
-{ 
+{
+  /*
+   *
+   * Pequena verificação para ver se o arquivo foi passado como parâmetro 
+   *
+   */
+
+  if(argc < 2) 
+  { std::cerr << "Specify .ceb source file\n"; exit(SOURCE_FILE_ERROR); }
+
   /*
    *
    * Carregando o arquivo como apenas leitura
@@ -205,10 +344,7 @@ int main (int argc, char** argv) noexcept
   struct stat _file_infos; 
 
   if(_file == -1)
-  {
-    std::cerr << COMPILER_EXEC << " : Error to load source -> " << SOURCE_FILE << '\n'; 
-    exit(EXIT_FAILURE);
-  }
+  { std::cerr << "Error to load source -> " << SOURCE_FILE << '\n'; exit(SOURCE_FILE_ERROR); }
 
   /*
    *
@@ -217,10 +353,7 @@ int main (int argc, char** argv) noexcept
    */
 
   if(fstat(_file, &_file_infos) == -1)
-  {
-    std::cerr << COMPILER_EXEC << " : Error to get file infos -> " << SOURCE_FILE << '\n';
-    exit(EXIT_FAILURE);
-  }
+  { std::cerr << "Error to get file infos -> " << SOURCE_FILE << '\n'; exit(SOURCE_FILE_ERROR); }
   
   /*
    *
@@ -243,7 +376,7 @@ int main (int argc, char** argv) noexcept
   std::vector<Token> _tokens;
 
   remove_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); munmap(_file_mmap, _file_infos.st_size);
-  tokenize(_file_mmap_dest, std::ref(_tokens), _file_infos.st_size);
+  tokenize(_file_mmap_dest, &_tokens, _file_infos.st_size);
 
   /*
    *
@@ -253,6 +386,8 @@ int main (int argc, char** argv) noexcept
 
   for(uint32_t _i { 0 }; _i < _tokens.size(); _i++)
   {
+    _tokens[_i].translate();
+
     std::cout << "===================TOKEN-" << _i << "==================\n";
     std::cout << "INSTRUCTION : " << _tokens[_i]._name << '\n';
     std::cout << "ARG1        : " << _tokens[_i]._arg1 << '\n';

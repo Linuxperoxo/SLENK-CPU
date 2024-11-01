@@ -2,4 +2,22 @@ MOV [A] [2];
 MOV [A] [X];
 MOV [A] [*0x80FF];
 MOV [*0x80FF] [A];
-MOV [*0x80FF] [*0x80FF];
+MOV [*0x80FF] [1];
+
+ADD [1];
+ADD [A];
+ADD [1] [2];
+ADD [X] [Y];
+
+SUB [1];
+SUB [A];
+SUB [1] [2];
+SUB [X] [Y];
+
+RST [];
+BRK [];
+PRT [];
+JMP [*0x8000];
+POP [];
+PSH [];
+

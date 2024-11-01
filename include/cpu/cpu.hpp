@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 30/10/2024                    | 
+ *    |  SRC MOD   : 01/11/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -350,7 +350,7 @@ private:
    *    EXEMPLO : MOV 0x80FF, A
    *
    * 5. Mover dado bruto para uma área da memória
-   *    EXEMPLO : MOV 5, 0x80FF
+   *    EXEMPLO : MOV 0x80FF, 1
    *
    */
 

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 31/10/2024                    |
+ *    |  SRC MOD   : 01/11/2024                    |
  *    |  VERSION   : 0.0-1                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -15,15 +15,23 @@
  */
 
 /*
+ * Para essa primeira versão a otimização não vai ser o nosso foco, pretendo deixar nosso compilador
+ * funcional antes de qualquer coisa otimização, seja em estruturas de dados ou algoritmos.
+ *
+ * OTIMIZAÇÂO PRÉMATURA É A RAIZ DE TODO MAL!
  *
  *    CHANGE LOG 0.0-1:
- *      * Adicionado funções básicas como: Remoção de espaços e quebra de linhas no arquivo e dividindo o arquivo em tokens;
- *      * Adicionado um decoder para saber qual variação da instrução MOV usar;
+ *      * Adicionado -> Funções básicas como: Remoção de espaços e quebra de linhas no arquivo e divisão do arquivo em tokens;
+ *      * Adicionado -> Parsing para todas as instruções
+ *      * Adicionado -> Tradução das instruções para opcode binário
+ *      * Melhoria   -> Estrutura do código
  *
- *   TO DOS 0.0-1:
- *    * Fazer o decoder para as outras instruçoes;
- *    * Fazer o decoder para as outras instruções que possue diversas variações;
- *    * Traduzir para o binário;
+ *    TO DOS 0.0-1:
+ *      * Traduzir os argumentos para binário;
+ *
+ *    TO DOS 0.1-0:
+ *      * Aplicar diversas otimizações e melhorias no código;
+ *      * Usar estruturas de dados mais complexas, como hashtable;
  *
  */
 
@@ -65,16 +73,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <iostream>
 #include <string>
 #include <vector>
+
+#include "../include/utils.hpp"
+#include "../include/instructions_parsing.hpp"
 
 #define SOURCE_FILE       argv[1]
 #define CANEBLY_EXTENSION "ceb" 
 
 #define OPTABLE_SIZE         0x13
 #define REGTABLE_SIZE        0x05
-#define INSTRUCTION_VARIABLE 0x03
+#define INSTRUCTIONS         0x09
 #define FUNCTIONS_DECODER    0x03
 
 /*
@@ -86,10 +96,6 @@
 #define SYNTAX_ERROR      0xFF
 #define SOURCE_FILE_ERROR 0xFE
 
-void mov_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict);
-void add_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict) {}
-void sub_decoder(std::string* __restrict, const std::string* __restrict, const std::string* __restrict) {}
-
 /*
  *
  * Essa parte pode ser bem complexa, talvez até mais que devia, mas foi a
@@ -98,47 +104,36 @@ void sub_decoder(std::string* __restrict, const std::string* __restrict, const s
  *
  */
 
-static std::string _instruction_name[OPTABLE_SIZE]
+static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
 {
   "RST",  "JMP",  "POP",  "PSH",
-  "MOV",  "MOV2", "MOV3", "MOV4",
-  "MOV5", "PRT",  "BRK",  "ADD",
-  "ADD2", "ADD3", "ADD4", "SUB",
+  "MOV1", "MOV2", "MOV3", "MOV4",
+  "MOV5", "PRT",  "BRK",  "ADD1",
+  "ADD2", "ADD3", "ADD4", "SUB1",
   "SUB2", "SUB3", "SUB4"
 };
 
-static std::string _reg_name[REGTABLE_SIZE]
+static std::string _reg_names[REGTABLE_SIZE]
 {
   "A", "X", "Y", "S", 
   "STK" 
 };
 
-static std::string _instructions_with_variable[INSTRUCTION_VARIABLE]
+static std::string _source_possible_instructions_names[INSTRUCTIONS]
 {
-  "MOV", "ADD", "SUB"
+  "RST", "JMP", "POP", "PSH",
+  "MOV", "PRT", "BRK", "ADD",
+  "SUB"
 };
 
-static uint8_t _optable[OPTABLE_SIZE]
+static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
 {
-  0x00, 0x01, 0x02, 0x03,
-  0x04, 0x05, 0x06, 0x07,
-  0x08, 0x09, 0x0A, 0x0B,
-  0x0C, 0x0D, 0x0E, 0x0F,
-  0x10, 0x11, 0x12
+  &rst_instruction, &jmp_instruction, &pop_instruction, &psh_instruction,
+  &mov_instruction, &prt_instruction, &brk_instruction,  &add_instruction, 
+  &sub_instruction
 };
 
-static uint8_t _regtable[REGTABLE_SIZE]
-{
-  0x00, 0x01, 0x02, 0x03, 
-  0x04
-};
-
-static void (*_functions_decoder[FUNCTIONS_DECODER])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
-{
-  &mov_decoder, &add_decoder, &sub_decoder
-};
-
-void instruction_decoder(std::string* _instruction_name, const std::string* _arg1, const std::string* _arg2) noexcept
+void instruction_parsing(std::string* _instruction_name, const std::string* _arg1, const std::string* _arg2) noexcept
 {
   /*
    *
@@ -146,23 +141,26 @@ void instruction_decoder(std::string* _instruction_name, const std::string* _arg
    *
    */
 
-  uint8_t _instruction_variable { 10 };
-
-  for(uint8_t _i { 0 }; _i < INSTRUCTION_VARIABLE; _i++)
+  for(uint8_t _i { 0 }; _i < INSTRUCTIONS; _i++)
   {
-    if(_instructions_with_variable[_i] == *_instruction_name) { _instruction_variable = _i; break; } 
+    if(_source_possible_instructions_names[_i] == *_instruction_name) { _instructions_functions_decoder[_i](_instruction_name, _arg1, _arg2); return; } 
   }
+  std::cerr << "Syntax Error -> " << "Invalid instruction -> " << *_instruction_name << ' ' << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR);
+}
 
-  if(_instruction_variable == 10) { return; }
-
-  _functions_decoder[_instruction_variable](_instruction_name, _arg1, _arg2);
+void convert_instruction(const std::string* _instruction_name, std::string* _token_bin) noexcept
+{
+  for(uint8_t _i { 0 }; _i < OPTABLE_SIZE; _i++)
+  {
+    if(*_instruction_name == _cpu_possible_instructions_names[_i]) { decimal_in_string_bin(_i, _token_bin); return; }
+  }
 }
 
 struct Token
 {
   /*
    *
-   * Isso séria a árvore, aqui vamos guardar o nome e os argumentos do token que o Lexer organizou 
+   * Aqui é a nossa "árvore", vamos guardar o nome e os argumentos do token que o Lexer organizou 
    *
    */
 
@@ -170,37 +168,45 @@ struct Token
   std::string _arg1;
   std::string _arg2;
 
+  /*
+   *
+   * Aqui vai ficar o binário desse token, ou seja, o binário que será interpretado como instrução
+   * pelo processador
+   *
+   */
+
+  std::string _bin;
+
+  void parsing() noexcept
+  {
+    /*
+     *
+     * Fazendo o parsing do nosso token
+     *
+     */
+
+    instruction_parsing(&_name, &_arg1, &_arg2);
+  }
+
   void translate() noexcept
   {
     /*
      *
-     * Ainda vou fazer :)
+     * Convertendo para binário
      *
      */
 
-    instruction_decoder(&_name, &_arg1, &_arg2);
+    convert_instruction(&_name, &_bin);
+    
+    std::cout << _name << ' ' << _bin << '\n';
   }
 };
 
-void remove_spaces(uint8_t* __restrict _source_file, uint8_t* __restrict _source_file_dest, const uint32_t _source_file_size) noexcept
+void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint32_t _source_file_size) noexcept
 {
   /*
    *
-   * Essa função serve para tirar qualquer rastro de espaços e quebra de linhas do nosso arquivo fonte
-   *
-   */
-
-  for(uint32_t _i { 0 }; _i < _source_file_size; _i++)
-  {
-    if(_source_file[_i] != ' ' && _source_file[_i] != '\n') _source_file_dest[_i] = _source_file[_i];
-  }
-}
-
-void tokenize(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint32_t _source_file_size) noexcept
-{
-  /*
-   *
-   * Aqui fica o nosso lexer, aqui o código é organizado.
+   * Aqui fica o nosso lexer, é aqui onde o código é organizado.
    *
    * EXEMPLO:
    *  ARQUIVO FONTE:
@@ -296,30 +302,9 @@ bool check_valid_reg(const std::string* _reg) noexcept
 {
   for(uint8_t _i { 0 }; _i < REGTABLE_SIZE; _i++)
   {
-    if(_reg_name[_i] == *_reg) { return true; }
+    if(_reg_names[_i] == *_reg) { return true; }
   }
   return false;
-}
-
-/*
- *
- * Funções para verificar qual variação vamos usar, isso serve
- * para apenas algumas instruções
- *
- */
-
-void mov_decoder(std::string* __restrict _instruction_name, const std::string* __restrict _arg1, const std::string* __restrict _arg2)
-{
-  if(check_valid_reg(_arg1) && !check_valid_reg(_arg2) && (*_arg2)[0] != '*') 
-  { *_instruction_name = "MOV1"; }
-  else if(check_valid_reg(_arg1) && check_valid_reg(_arg2))
-  { *_instruction_name = "MOV2"; }
-  else if(check_valid_reg(_arg1) && !check_valid_reg(_arg2) && (*_arg2)[0] == '*')
-  { *_instruction_name = "MOV3"; }
-  else if(check_valid_reg(_arg2) && !check_valid_reg(_arg1) && (*_arg1)[0] == '*')
-  { *_instruction_name = "MOV4"; }
-  else
-  { std::cerr << "Syntax Error -> " << *_instruction_name << ' ' << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR); }
 }
 
 int main (int argc, char** argv) noexcept 
@@ -374,25 +359,53 @@ int main (int argc, char** argv) noexcept
    */
 
   std::vector<Token> _tokens;
-
-  remove_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); munmap(_file_mmap, _file_infos.st_size);
-  tokenize(_file_mmap_dest, &_tokens, _file_infos.st_size);
-
+  
   /*
    *
-   * Essa parte que estou usando para ver se tudo foi organizado como esperado
+   * Removemos qualquer quebra de linha e espaços no arquivo source usando essa função
    *
-   */ 
+   */
+
+  remove_file_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); munmap(_file_mmap, _file_infos.st_size);
+  
+  /*
+   *
+   * Depois de fazer a limpaza dos espaços e quebra de linhas vamos organizar os tokens
+   *
+   */
+
+  lexer(_file_mmap_dest, &_tokens, _file_infos.st_size);
 
   for(uint32_t _i { 0 }; _i < _tokens.size(); _i++)
   {
+    /*
+     *
+     * Primeiro vamos fazer o parsing do nosso token, ou seja, 
+     * se ele está seguindo as regras de syntax da linguagem
+     *
+     */
+
+    _tokens[_i].parsing();
+
+    /*
+     *
+     * Se tudo estiver OK vamos converter o token para código binário
+     *
+     */
+
     _tokens[_i].translate();
 
-    std::cout << "===================TOKEN-" << _i << "==================\n";
-    std::cout << "INSTRUCTION : " << _tokens[_i]._name << '\n';
-    std::cout << "ARG1        : " << _tokens[_i]._arg1 << '\n';
-    std::cout << "ARG2        : " << _tokens[_i]._arg2 << '\n';
-    std::cout << "============================================\n";
+    /*
+     *
+     * Parte para verificar se os tokens estão sendo organizado certinho 
+     *
+     * std::cout << "===================TOKEN-" << _i << "==================\n";
+     * std::cout << "INSTRUCTION : " << _tokens[_i]._name << '\n';
+     * std::cout << "ARG1        : " << _tokens[_i]._arg1 << '\n';
+     * std::cout << "ARG2        : " << _tokens[_i]._arg2 << '\n';
+     * std::cout << "============================================\n";
+     *
+     */
   }
 
   munmap(_file_mmap_dest, _file_infos.st_size);

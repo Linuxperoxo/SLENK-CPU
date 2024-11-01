@@ -30,5 +30,8 @@ O===============================================================================
 | -> ./SLENK/include/bus/bus.hpp                                                                  |
 | -> ./SLENK/include/dma/dma.hpp                                                                  |
 | -> ./SLENK/include/display/display.hpp                                                          |
+| -> ./NANC/src/nanc.cpp                                                                          |
+|                                                                                                 |
+| Sinta-se à vontade em ver todo o código fonte                                                   |
 |                                                                                                 |
 O=================================================================================================/

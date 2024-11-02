@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <string>
+#include <iostream>
 
 inline void decimal_in_string_bin(const uint8_t _byte, std::string* _dest) noexcept
 {
@@ -27,12 +28,33 @@ inline void decimal_in_string_bin(const uint8_t _byte, std::string* _dest) noexc
   }
 }
 
-inline void remove_file_spaces(const uint8_t* __restrict _file, uint8_t* __restrict _file_dest, const uint32_t _file_size) noexcept
+inline void remove_source_segments(const uint8_t* __restrict _file, uint8_t* __restrict _file_dest, const uint32_t _file_size) noexcept
 {
+  bool _inside_comment_tuple { false };
+
   for(uint32_t _i { 0 }; _i < _file_size; _i++)
   {
-    if(_file[_i] != ' ' && _file[_i] != '\n') { _file_dest[_i] = _file[_i]; }
+    if(_file[_i] == '<') 
+    { 
+      if(_inside_comment_tuple)
+      { break; }
+
+      _inside_comment_tuple = true; 
+    }
+    
+    if(_file[_i] == '>')
+    { 
+      if(!_inside_comment_tuple)
+      { std::cerr << "Syntax Error -> " << "comment scope was closed but at no point was it opened!\n"; exit(EXIT_FAILURE); }
+      
+      _inside_comment_tuple = false; ++_i; 
+    }
+    
+    if(_file[_i] != ' ' && _file[_i] != '\n' && !_inside_comment_tuple) { _file_dest[_i] = _file[_i]; }
   }
+  
+  if(_inside_comment_tuple)
+  { std::cerr << "Syntax Error -> " << "comment scope was not closed!\n"; exit(EXIT_FAILURE); }
 }
 
 #endif

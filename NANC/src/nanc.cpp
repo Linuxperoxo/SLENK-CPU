@@ -7,7 +7,7 @@
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
  *    |  SRC MOD   : 02/11/2024                    |
- *    |  VERSION   : 0.0-1                         |
+ *    |  VERSION   : 0.1-0                         |
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -15,18 +15,20 @@
  */
 
 /*
+ *
+ * Canembly Lang Compiler :)
+ *
+ */
+
+
+/*
  * Para essa primeira versão a otimização não vai ser o nosso foco, pretendo deixar nosso compilador
  * funcional antes de qualquer coisa otimização, seja em estruturas de dados ou algoritmos.
  *
  * OTIMIZAÇÂO PRÉMATURA É A RAIZ DE TODO MAL!
  *
- *    CHANGE LOG 0.0-1:
- *      * Adicionado -> Funções básicas como: Remoção de espaços e quebra de linhas no arquivo e divisão do arquivo em tokens;
- *      * Adicionado -> Parsing para todas as instruções;
- *      * Adicionado -> Tradução das instruções para opcode binário;
- *      * Adicionado -> Os parâmetros está sendo convertido para binário;
- *      * Adicionado -> Suporte a hexadecimal e decimal;
- *      * Melhoria   -> Estrutura do código;
+ *    CHANGE LOG 0.1-0:
+ *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;
@@ -59,12 +61,6 @@
  *
  */
 
-/*
- *
- * COMPILER for canembly lang
- *
- */
-
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
@@ -84,9 +80,9 @@
 #define CANEBLY_EXTENSION "ceb" 
 #define BIN_FILE_DEST     "./anc.bin"
 
-#define OPTABLE_SIZE         0x13
+#define OPTABLE_SIZE         0x15
 #define REGTABLE_SIZE        0x04
-#define INSTRUCTIONS         0x09
+#define INSTRUCTIONS         0x0B
 #define FUNCTIONS_DECODER    0x03
 
 /*
@@ -112,7 +108,8 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
   "MOV1", "MOV2", "MOV3", "MOV4",
   "MOV5", "PRT",  "BRK",  "ADD1",
   "ADD2", "ADD3", "ADD4", "SUB1",
-  "SUB2", "SUB3", "SUB4"
+  "SUB2", "SUB3", "SUB4", "INC",
+  "DEC"
 };
 
 static std::string _reg_names[REGTABLE_SIZE]
@@ -124,14 +121,14 @@ static std::string _source_possible_instructions_names[INSTRUCTIONS]
 {
   "RST", "JMP", "POP", "PSH",
   "MOV", "PRT", "BRK", "ADD",
-  "SUB"
+  "SUB", "INC", "DEC"
 };
 
 static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
 {
-  &rst_instruction, &jmp_instruction, &pop_instruction, &psh_instruction,
-  &mov_instruction, &prt_instruction, &brk_instruction,  &add_instruction, 
-  &sub_instruction
+  &rst_instruction, &jmp_instruction,     &pop_instruction,    &psh_instruction,
+  &mov_instruction, &prt_instruction,     &brk_instruction,    &add_instruction, 
+  &sub_instruction, &inc_dec_instruction, &inc_dec_instruction 
 };
 
 void instruction_parsing(std::string* _instruction, const std::string* _arg1, const std::string* _arg2) noexcept
@@ -445,7 +442,7 @@ int main (int argc, char** argv) noexcept
    *
    */
 
-  remove_file_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); 
+  remove_source_segments(_file_mmap, _file_mmap_dest, _file_infos.st_size); 
 
   /*
    *
@@ -481,6 +478,16 @@ int main (int argc, char** argv) noexcept
      */
 
     _tokens[_i].translate();
+
+    /*
+     *
+     * Adicionando uma quebra de linha no final do arquivo binário
+     *
+     * OBS : Isso é só para arrumar um bug
+     *
+     */
+
+    if(_i + 1 == _tokens.size()) { _tokens[_i]._bin.push_back('\n'); }
 
     /*
      *

@@ -1,0 +1,46 @@
+< 
+  
+  /--------------------------------------------O
+  |                                            |
+  |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
+  |  AUTHOR    : Linuxperoxo                   |
+  |  FILE      : hello, world.ceb              |
+  |                                            |
+  O--------------------------------------------/
+  
+>
+
+<
+  
+  Esse é o nosso primeiro programa escrito em Canebly.
+  
+>
+
+< Escrevendo HELLO, WORLD! no framebuffer do display >
+
+MOV [*0x7000] [72]; < Caractere 'H' >
+MOV [*0x7001] [69]; < Caractere 'E' >
+MOV [*0x7002] [76]; < Caractere 'L' >
+MOV [*0x7003] [76]; < Caractere 'L' >
+MOV [*0x7004] [79]; < Caractere 'O' >
+
+MOV [*0x7005] [44]; < Caractere ',' >
+
+MOV [*0x7006] [32]; < Aqui fica o espaço >
+
+MOV [*0x7007] [87]; < Caractere 'W' >
+MOV [*0x7008] [79]; < Caractere 'O' >
+MOV [*0x7009] [82]; < Caractere 'R' >
+MOV [*0x700A] [76]; < Caractere 'L' >
+MOV [*0x700B] [68]; < Caractere 'D' >
+MOV [*0x700C] [33]; < Caractere '!' >
+
+MOV [*0x700D] [10]; < Caractere '\n' para quebrar a linha >
+
+<
+
+  Sinalizando que o programa foi encerrado
+  
+>
+
+BRK []; 

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : memory.hpp                    |
- *    |  SRC MOD   : 29/10/2024                    |
+ *    |  SRC MOD   : 02/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -58,7 +58,6 @@
 #define ROM_INIT      0x8000
 #define ROM_END       0xFFFF
 #define FIRMWARE_INIT 0x0000
-#define FIRMWARE_END  0x0400
 
 /*
  *
@@ -138,7 +137,7 @@ private:
      *
      */
 
-    if(_WR == 1 || _addrs_to_write < ROM_INIT && _addrs_to_write > FIRMWARE_END)
+    if(_WR == 1 || _addrs_to_write < ROM_INIT)
       _RAM[_addrs_to_write] = _data_to_write; 
   }
 

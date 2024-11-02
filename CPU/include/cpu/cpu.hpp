@@ -75,7 +75,7 @@
 #include <string>
 
 #define REGCODE_NUM 0x05
-#define OPCODE_NUM  0x13
+#define OPCODE_NUM  0x15
 #define BRK_OPCODE  0x0A
 
 /*
@@ -88,7 +88,7 @@
  *
  */
 
-//#define CPU_LOG
+#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
 
@@ -239,7 +239,8 @@ public:
       {"MOV", &CPU::MOV},  {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
       {"MOV", &CPU::MOV5}, {"PRT", &CPU::PRT},  {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  
       {"ADD", &CPU::ADD2}, {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  
-      {"SUB", &CPU::SUB2}, {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}
+      {"SUB", &CPU::SUB2}, {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},
+      {"DEC", &CPU::DEC}
     }; 
     
     /*
@@ -249,7 +250,8 @@ public:
      *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
      *  MOV : 0x08   PRT : 0x09    BRK : 0x0A    ADD : 0x0B    
      *  ADD : 0x0C   ADD : 0x0D    ADD : 0x0E    SUB : 0x0F    
-     *  SUB : 0x10   SUB : 0x11    SUB : 0x12
+     *  SUB : 0x10   SUB : 0x11    SUB : 0x12    INC : 0x13
+     *  DEC : 0x14
      *
      */
 

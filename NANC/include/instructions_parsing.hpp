@@ -149,5 +149,15 @@ inline void sub_instruction(std::string* __restrict _instruction,
   { std::cerr << "Syntax Error -> " << *_instruction << " Invalid args -> " << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR); }
 }
 
+inline void inc_dec_instruction(std::string *__restrict _instruction, 
+                            const std::string *__restrict _arg1, 
+                            const std::string *__restrict _arg2) noexcept
+{
+  if(check_valid_reg(_arg1) != REG_NOT_FOUND && _arg2->empty())
+  { return; }
+
+  std::cerr << "Syntax Error -> " << *_instruction << " Invalid args -> " << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR);
+}
+
 #endif
 

@@ -454,14 +454,14 @@ void CPU::INC() noexcept
 {
   *register_decoder(BYTE1()) += 1;
   
-  _PC += 3;
+  _PC += 2;
 }
 
 void CPU::DEC() noexcept
 {
   *register_decoder(BYTE1()) -= 1;
 
-  _PC += 3;
+  _PC += 2;
 }
 
 /*

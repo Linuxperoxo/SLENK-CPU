@@ -29,6 +29,7 @@
  *
  *    CHANGE LOG 0.1-0:
  *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
+ *      * Adicionado -> Instruções INC e DEC para incremento e decremento de registradores;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;

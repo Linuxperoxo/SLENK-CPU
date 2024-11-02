@@ -88,7 +88,7 @@
  *
  */
 
-#define CPU_LOG
+//#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
 

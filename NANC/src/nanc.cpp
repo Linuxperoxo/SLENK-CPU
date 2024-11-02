@@ -22,15 +22,16 @@
  *
  *    CHANGE LOG 0.0-1:
  *      * Adicionado -> Funções básicas como: Remoção de espaços e quebra de linhas no arquivo e divisão do arquivo em tokens;
- *      * Adicionado -> Parsing para todas as instruções
- *      * Adicionado -> Tradução das instruções para opcode binário
- *      * Adicionado -> Os parâmetros está sendo convertido para binário
- *      * Adicionado -> Suporte a hexadecimal e decimal
- *      * Melhoria   -> Estrutura do código
+ *      * Adicionado -> Parsing para todas as instruções;
+ *      * Adicionado -> Tradução das instruções para opcode binário;
+ *      * Adicionado -> Os parâmetros está sendo convertido para binário;
+ *      * Adicionado -> Suporte a hexadecimal e decimal;
+ *      * Melhoria   -> Estrutura do código;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;
  *      * Usar estruturas de dados mais complexas, como hashtable;
+ *      * Adicionar mais instruções ao compilador;
  *
  */
 
@@ -66,6 +67,7 @@
 
 #include <cctype>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <sys/mman.h>
@@ -80,6 +82,7 @@
 
 #define SOURCE_FILE       argv[1]
 #define CANEBLY_EXTENSION "ceb" 
+#define BIN_FILE_DEST     "./anc.bin"
 
 #define OPTABLE_SIZE         0x13
 #define REGTABLE_SIZE        0x04
@@ -257,13 +260,6 @@ struct Token
     convert_instruction(&_name, &_bin);
     convert_args(&_arg1, &_bin);
     convert_args(&_arg2, &_bin);
-    
-    std::cout << "-----------------------------\n";
-    std::cout << _name << '\n';
-    std::cout << _arg1 << '\n';
-    std::cout << _arg2 << '\n';
-    std::cout << _bin  << '\n';
-    std::cout << "----------------------------\n";
   }
 };
 
@@ -407,6 +403,17 @@ int main (int argc, char** argv) noexcept
   
   /*
    *
+   * Criando um arquivo que vai ser o binário
+   *
+   */
+
+  int _bin_file { open(BIN_FILE_DEST, O_TRUNC | O_CREAT | O_RDWR, S_IWUSR | S_IRUSR) };
+
+  if(_bin_file == -1)
+  { std::cerr << "Error to create bin file -> " << BIN_FILE_DEST << '\n'; close(_file); exit(SOURCE_FILE_ERROR); }
+  
+  /*
+   *
    * Mapeando arquivo na memória para facilitar a manipulação de leitura
    *
    * O _file_mmap_dest é o arquivo já sem os espaços e quebra de linhas
@@ -415,7 +422,14 @@ int main (int argc, char** argv) noexcept
 
   uint8_t* _file_mmap      { static_cast<uint8_t*>(mmap(nullptr, _file_infos.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, _file, 0)) };
   uint8_t* _file_mmap_dest { static_cast<uint8_t*>(mmap(nullptr, _file_infos.st_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0)) };
-  
+
+  /*
+   *
+   * Como mapeamos o arquivo na memória podemos fecha-lo
+   *
+   */
+
+  close(_file);
 
   /*
    *
@@ -431,7 +445,15 @@ int main (int argc, char** argv) noexcept
    *
    */
 
-  remove_file_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); munmap(_file_mmap, _file_infos.st_size);
+  remove_file_spaces(_file_mmap, _file_mmap_dest, _file_infos.st_size); 
+
+  /*
+   *
+   * Como já tiramos todos os espaços do arquivo podemos liberar essa memória 
+   *
+   */
+
+  munmap(_file_mmap, _file_infos.st_size);
   
   /*
    *
@@ -441,7 +463,7 @@ int main (int argc, char** argv) noexcept
 
   lexer(_file_mmap_dest, &_tokens, _file_infos.st_size);
 
-  for(uint32_t _i { 0 }; _i < _tokens.size(); _i++)
+  for(uint64_t _i { 0 }; _i < _tokens.size(); _i++)
   {
     /*
      *
@@ -471,6 +493,17 @@ int main (int argc, char** argv) noexcept
      * std::cout << "============================================\n";
      *
      */
+
+    if(write(_bin_file, _tokens[_i]._bin.c_str(), _tokens[_i]._bin.size()) == -1)
+    { 
+      std::cerr << "Error to write in binary file -> " << BIN_FILE_DEST << '\n'; 
+      
+      close(_bin_file); 
+      
+      remove(BIN_FILE_DEST);
+
+      break;
+    }
   }
 
   munmap(_file_mmap_dest, _file_infos.st_size);

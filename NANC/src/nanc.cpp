@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 01/11/2024                    |
+ *    |  SRC MOD   : 02/11/2024                    |
  *    |  VERSION   : 0.0-1                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -24,10 +24,9 @@
  *      * Adicionado -> Funções básicas como: Remoção de espaços e quebra de linhas no arquivo e divisão do arquivo em tokens;
  *      * Adicionado -> Parsing para todas as instruções
  *      * Adicionado -> Tradução das instruções para opcode binário
+ *      * Adicionado -> Os parâmetros está sendo convertido para binário
+ *      * Adicionado -> Suporte a hexadecimal e decimal
  *      * Melhoria   -> Estrutura do código
- *
- *    TO DOS 0.0-1:
- *      * Traduzir os argumentos para binário;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;
@@ -83,7 +82,7 @@
 #define CANEBLY_EXTENSION "ceb" 
 
 #define OPTABLE_SIZE         0x13
-#define REGTABLE_SIZE        0x05
+#define REGTABLE_SIZE        0x04
 #define INSTRUCTIONS         0x09
 #define FUNCTIONS_DECODER    0x03
 
@@ -115,8 +114,7 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
 
 static std::string _reg_names[REGTABLE_SIZE]
 {
-  "A", "X", "Y", "S", 
-  "STK" 
+  "A", "X", "Y", "S"  
 };
 
 static std::string _source_possible_instructions_names[INSTRUCTIONS]
@@ -133,7 +131,7 @@ static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __rest
   &sub_instruction
 };
 
-void instruction_parsing(std::string* _instruction_name, const std::string* _arg1, const std::string* _arg2) noexcept
+void instruction_parsing(std::string* _instruction, const std::string* _arg1, const std::string* _arg2) noexcept
 {
   /*
    *
@@ -143,16 +141,76 @@ void instruction_parsing(std::string* _instruction_name, const std::string* _arg
 
   for(uint8_t _i { 0 }; _i < INSTRUCTIONS; _i++)
   {
-    if(_source_possible_instructions_names[_i] == *_instruction_name) { _instructions_functions_decoder[_i](_instruction_name, _arg1, _arg2); return; } 
+    if(_source_possible_instructions_names[_i] == *_instruction) { _instructions_functions_decoder[_i](_instruction, _arg1, _arg2); return; } 
   }
-  std::cerr << "Syntax Error -> " << "Invalid instruction -> " << *_instruction_name << ' ' << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR);
+  std::cerr << "Syntax Error -> " << "Invalid instruction -> " << *_instruction << ' ' << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR);
 }
 
-void convert_instruction(const std::string* _instruction_name, std::string* _token_bin) noexcept
+void convert_instruction(const std::string* __restrict _instruction, std::string* __restrict _token_bin) noexcept
 {
   for(uint8_t _i { 0 }; _i < OPTABLE_SIZE; _i++)
   {
-    if(*_instruction_name == _cpu_possible_instructions_names[_i]) { decimal_in_string_bin(_i, _token_bin); return; }
+    if(*_instruction == _cpu_possible_instructions_names[_i]) { decimal_in_string_bin(_i, _token_bin); return; }
+  }
+}
+
+void convert_args(std::string* __restrict _arg, std::string* __restrict _token_bin) noexcept
+{
+  /*
+   *
+   * Essa função vai ser melhorada no futuro, está sendo apenas para testes
+   *
+   */
+
+  if(_arg->empty()) 
+  { return; }
+
+  if(_arg->size() == 1)
+  {
+    if(check_valid_reg(_arg) != REG_NOT_FOUND)
+    { decimal_in_string_bin(check_valid_reg(_arg), _token_bin); return; }
+    
+    if(std::isalnum((*_arg)[0]))
+    { decimal_in_string_bin((*_arg)[0] - '0', _token_bin); return; }
+    
+    std::cerr << "Syntax Error -> " << "Undefined instruction -> " << '[' << *_arg << ']' << '\n'; exit(SYNTAX_ERROR);
+  }
+  
+  uint32_t _i    { 0 };
+  bool _is_addrs { false };
+
+  if((*_arg)[_i] == '*')
+  { ++_i; _is_addrs = true; }
+
+  if(std::isalnum((*_arg)[_i]))
+  {
+    if((*_arg)[_i] == '0' && std::tolower((*_arg)[_i + 1]) == 'x')
+    {
+      _arg->erase(0, _is_addrs ? 3 : 2);
+       
+      /*
+       *
+       * Convertendo hexadecimal em decimal
+       *
+       * Primeiro pegamos o high byte para converter e depois o lower byte
+       *
+       */
+       
+      decimal_in_string_bin(std::stoi(_arg->substr(0, 2), nullptr, 16), _token_bin);
+      decimal_in_string_bin(std::stoi(_arg->substr(2, 2), nullptr, 16), _token_bin);
+      
+      } else {
+      
+      _arg->erase(0, _is_addrs ? 1 : 0);
+       
+      /*
+       *
+       * Convertendo decimal string para decimal
+       *
+       */
+       
+      decimal_in_string_bin(std::stoi(*_arg), _token_bin);
+    }
   }
 }
 
@@ -197,8 +255,15 @@ struct Token
      */
 
     convert_instruction(&_name, &_bin);
+    convert_args(&_arg1, &_bin);
+    convert_args(&_arg2, &_bin);
     
-    std::cout << _name << ' ' << _bin << '\n';
+    std::cout << "-----------------------------\n";
+    std::cout << _name << '\n';
+    std::cout << _arg1 << '\n';
+    std::cout << _arg2 << '\n';
+    std::cout << _bin  << '\n';
+    std::cout << "----------------------------\n";
   }
 };
 
@@ -225,13 +290,13 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
    *
    */
 
-  std::string _current_instruction_name;
+  std::string _current_instruction;
   std::string _current_instruction_arg1;
   std::string _current_instruction_arg2;
 
   bool _inside_key_arg1       { false };
   bool _inside_key_arg1_close { false };
-  bool _inside_key_arg2       { false };
+  bool _inside_key_arg2       { false };  
   bool _inside_key_arg2_close { false };
 
   for(uint32_t _i { 0 }; _i < _source_file_size; _i++)
@@ -254,9 +319,9 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
       } else if (_inside_key_arg2){
         _current_instruction_arg2.push_back(_source_file[_i]);
       } else {
-        _current_instruction_name.push_back(_source_file[_i]);
-        _current_instruction_name.push_back(_source_file[++_i]);  
-        _current_instruction_name.push_back(_source_file[++_i]);  
+        _current_instruction.push_back(_source_file[_i]);
+        _current_instruction.push_back(_source_file[++_i]);  
+        _current_instruction.push_back(_source_file[++_i]);  
       }
     } else if(std::isalnum(_source_file[_i])){
       if(_inside_key_arg1)
@@ -280,9 +345,9 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
         _inside_key_arg1       = false;
       }
     } else if(_source_file[_i] == ';'){
-      _tokens->push_back({_current_instruction_name, _current_instruction_arg1, _current_instruction_arg2});
+      _tokens->push_back({_current_instruction, _current_instruction_arg1, _current_instruction_arg2, ""}); // Essa string vazia é so para evitar o warning na compilação
 
-      _current_instruction_name.clear();
+      _current_instruction.clear();
       _current_instruction_arg1.clear();
       _current_instruction_arg2.clear();
 
@@ -298,13 +363,13 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
  *
  */
 
-bool check_valid_reg(const std::string* _reg) noexcept
+int8_t check_valid_reg(const std::string* _reg) noexcept
 {
   for(uint8_t _i { 0 }; _i < REGTABLE_SIZE; _i++)
   {
-    if(_reg_names[_i] == *_reg) { return true; }
+    if(_reg_names[_i] == *_reg) { return _i; }
   }
-  return false;
+  return REG_NOT_FOUND;
 }
 
 int main (int argc, char** argv) noexcept 

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : utils.hpp                     |
- *    |  SRC MOD   : 01/11/2024                    |
+ *    |  SRC MOD   : 02/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *

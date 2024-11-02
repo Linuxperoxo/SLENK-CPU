@@ -15,7 +15,7 @@
 #  *
 #  */
 
-BIN_NAME="NANC"
+BIN_NAME="ANC-CPU"
 ROOT_PROJECT="$(pwd)"
 SRC_DIR="${ROOT_PROJECT}/src"
 BUILD_DIR="${ROOT_PROJECT}/build"

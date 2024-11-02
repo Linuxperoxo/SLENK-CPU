@@ -1,4 +1,0 @@
-MOV [X] [9];
-MOV [Y] [9];
-ADD [X] [Y];
-BRK [];

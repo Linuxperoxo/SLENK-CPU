@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : display.cpp                   |
- *    |  SRC MOD   : 30/10/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -70,7 +70,7 @@ void DISPLAY::cycle() noexcept
    *
    */
 
-  _frame << "\n+======================DISPLAY=====================+\n|";
+  _frame << "\n+=======================DISPLAY======================+\n| ";
   
   while(_count <= DISPLAY_FRAMEBUFFER_SIZE)
   {
@@ -109,7 +109,7 @@ void DISPLAY::cycle() noexcept
 
     if(_render_for_line % MAX_CHAR_FOR_LINE == 0 && _render_for_line > 0)
     { 
-      _frame << "|\n";
+      _frame << " |\n";
 
       /*
        *
@@ -122,7 +122,7 @@ void DISPLAY::cycle() noexcept
 
       if(_count >= DISPLAY_FRAMEBUFFER_SIZE) { break; }
       
-      _frame << '|';
+      _frame << "| ";
 
       /*
        *
@@ -155,7 +155,7 @@ void DISPLAY::cycle() noexcept
     ++_count;
   }
 
-  _frame << "+==================================================+\n";
+  _frame << "+====================================================+\n";
 
   /*
    *

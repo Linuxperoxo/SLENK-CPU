@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : main.cpp                      |
- *    |  SRC MOD   : 29/10/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -20,10 +20,6 @@
 #include "../include/bus/bus.hpp"
 #include "../include/cpu/cpu.hpp"
 #include "../include/display/display.hpp"
-
-#if !defined ROM_INIT
-#define ROM_INIT 0x8000
-#endif
 
 /*
  *
@@ -75,14 +71,21 @@ int main(int argc, char** argv)
   new(_cpu) CPU(_bus);
   new(_display) DISPLAY(_bus);
   
-  
-  #if !defined USE_CUSTOM_FIRMWARE
-  _memory->load_firmware(); // Carregando firmware
-  #else
-  std::cout << "Custom firmware is not supported!\n";
-  exit(EXIT_FAILURE);
-  #endif
-  _memory->load_rom(argv[1]); // Carregando a ROM do programa
+  /*
+   *
+   * Carregando o firmware para configurar nosso microprocessador
+   *
+   */
+
+  _memory->load_firmware();
+
+  /*
+   *
+   * Carregando nosso programa
+   *
+   */
+
+  _memory->load_rom(argv[1]);
 
   /*
    *

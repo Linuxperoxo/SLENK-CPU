@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 02/11/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -29,20 +29,7 @@
   constexpr double HMZ_FREQUENCY { 1790000.0 / 1000000.0 }; 
 #endif
 
-#if !defined DISPLAY_FRAMEBUFFER_ADDRS
-#define DISPLAY_FRAMEBUFFER_ADDRS 0x7000
-#endif
-
-#if !defined DISPLAY_FRAMEBUFFER_SIZE
-#define DISPLAY_FRAMEBUFFER_SIZE 0x12C
-#endif
-
-#if !defined STACK_PTR_ADDRS
-#define STACK_PTR_ADDRS 0xFF
-#endif
-
-#define BRK_INSTRUCTION_OPCODE 0x09
-#define ROM_INIT               0x8000
+#define STACK_PTR_ADDRS        0xFF
 #define NANO_PER_SEC           1e9
 #define MILLISECONDS_HOUSE     0x03
 #define NANOSECONDS_HOUSE      0x06
@@ -52,7 +39,6 @@ typedef std::stringstream sstr;
 CPU::CPU(BUS* _bus_to_link) noexcept
 {
   _BUS = _bus_to_link;
-  _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
 }
 
 /*
@@ -189,7 +175,7 @@ void CPU::cycle() noexcept
 
     _cpu_log << "INSTRUCTION   : \"" << _instruction->_name << "\" \n";
     _cpu_log << "PC ADDRS      : \"0x" << std::hex << _PC << "\" \n";
-    _cpu_log << "STACK ADDRS   : \"0x" << std::hex << static_cast<int>(_STKPTR) << "\" \n";
+    _cpu_log << "STACK ADDRS   : \"0x" << std::hex << static_cast<int>(_STK) << "\" \n";
     _cpu_log << "CYCLE COUNTER : \"" << std::dec << ++_cycle_counter << "\" \n";
     _cpu_log << "CPU CLOCK     : \"" << std::fixed << std::setprecision(2) << HMZ_FREQUENCY << "MHz\" \n";
     _cpu_log << "CPU RUNTIME   : \"" << std::fixed << std::setprecision(NANOSECONDS_HOUSE) << _runtime_sec << "sec\"\n";
@@ -262,14 +248,13 @@ void CPU::RST() noexcept
    *
    */
 
-  _A               = 0x00;
-  _X               = 0x00;
-  _Y               = 0x00;
-  _S               = 0x00;
-  _STKPTR          = 0x00;
-  _PC              = 0x0000; 
-  _FRAMEBUFFER_PTR = 0x0000;
-  _STATUS          = 0x00;
+  _A      = 0x00;
+  _X      = 0x00;
+  _Y      = 0x00;
+  _S      = 0x00;
+  _STK    = 0x00;
+  _PC     = 0x00; 
+  _STATUS = 0x00;
 }
 
 /*
@@ -356,11 +341,11 @@ void CPU::JMP() noexcept
 
 void CPU::POP() noexcept
 {
-  _S = read(_STKPTR);
+  _S = read(_STK);
 
-  if(_STKPTR + 1 <= STACK_PTR_ADDRS)
+  if(_STK + 1 <= STACK_PTR_ADDRS)
   {
-    ++_STKPTR;
+    ++_STK;
   }
   ++_PC;
 }
@@ -373,56 +358,13 @@ void CPU::POP() noexcept
 
 void CPU::PSH() noexcept
 { 
-  if(_STKPTR -1 >= 0x00)
+  if(_STK -1 >= 0x00)
   {
-    --_STKPTR;
+    --_STK;
   }
 
-  write(_STKPTR, _S);
+  write(_STK, _S);
 
-  ++_PC;
-}
-
-/*
- *
- *  INSTRUCTION PRT:
- *
- */
-
-void CPU::PRT() noexcept
-{
-  _Y = { BYTE1() };
-  _A = { 0 };
-
-  /*
-   *
-   * Como estamos trabalhando com usigned int por seguraça decidi usar 
-   * um registrador incrementando 
-   *
-   */
-
-  while(_A <= _Y)
-  {
-    write(_FRAMEBUFFER_PTR, BYTE2());
-    
-    ++_PC;
-    ++_FRAMEBUFFER_PTR;
-    ++_A;
-
-    if(_FRAMEBUFFER_PTR > DISPLAY_FRAMEBUFFER_ADDRS + DISPLAY_FRAMEBUFFER_SIZE)
-    {
-      _FRAMEBUFFER_PTR = DISPLAY_FRAMEBUFFER_ADDRS;
-    }
-  }
-
-  /*
-   *
-   * Copiando o Byte faltante
-   *
-   */
-
-  write(_FRAMEBUFFER_PTR, BYTE2());
-  
   ++_PC;
 }
 

@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 02/11/2024                    | 
+ *    |  SRC MOD   : 03/11/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -75,7 +75,7 @@
 #include <string>
 
 #define REGCODE_NUM 0x05
-#define OPCODE_NUM  0x15
+#define OPCODE_NUM  0x14
 #define BRK_OPCODE  0x0A
 
 /*
@@ -88,7 +88,7 @@
  *
  */
 
-//#define CPU_LOG
+#define CPU_LOG
 
 constexpr uint16_t CPU_FREQUENCY { 1000000000 / 1790000 }; // 558 nanosegundos de delay
 
@@ -124,10 +124,9 @@ public:
   uint8_t  _X               { 0x00 };
   uint8_t  _Y               { 0x00 };
   uint8_t  _S               { 0x00 };
-  uint8_t  _STKPTR          { 0x00 };
+  uint8_t  _STK             { 0x00 };
   uint8_t  _DMA_DEV         { 0x00 };
   uint16_t _PC              { 0x0000 };
-  uint16_t _FRAMEBUFFER_PTR { 0x0000 };
 
   /*
   * REGISTRADOR DE STATUS:
@@ -237,10 +236,9 @@ public:
     {
       {"RST", &CPU::RST},  {"JMP", &CPU::JMP},  {"POP", &CPU::POP},  {"PSH", &CPU::PSH},
       {"MOV", &CPU::MOV},  {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
-      {"MOV", &CPU::MOV5}, {"PRT", &CPU::PRT},  {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  
-      {"ADD", &CPU::ADD2}, {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  
-      {"SUB", &CPU::SUB2}, {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},
-      {"DEC", &CPU::DEC}
+      {"MOV", &CPU::MOV5}, {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  {"ADD", &CPU::ADD2}, 
+      {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  {"SUB", &CPU::SUB2}, 
+      {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},  {"DEC", &CPU::DEC}
     }; 
     
     /*
@@ -248,10 +246,9 @@ public:
      * OPCODES:
      *  RST : 0x00   JMP : 0x01    POP : 0x02    PSH : 0x03   
      *  MOV : 0x04   MOV : 0x05    MOV : 0x06    MOV : 0x07
-     *  MOV : 0x08   PRT : 0x09    BRK : 0x0A    ADD : 0x0B    
-     *  ADD : 0x0C   ADD : 0x0D    ADD : 0x0E    SUB : 0x0F    
-     *  SUB : 0x10   SUB : 0x11    SUB : 0x12    INC : 0x13
-     *  DEC : 0x14
+     *  MOV : 0x08   BRK : 0x09    ADD : 0x0A    ADD : 0x0B   
+     *  ADD : 0x0C   ADD : 0x0D    SUB : 0x0E    SUB : 0x0F   
+     *  SUB : 0x10   SUB : 0x11    INC : 0x12    DEC : 0x13
      *
      */
 
@@ -270,7 +267,7 @@ public:
 
     static uint8_t* _REGTABLE[REGCODE_NUM]
     {
-      &_A, &_X, &_Y, &_S, &_STKPTR
+      &_A, &_X, &_Y, &_S, &_STK
     };
 
     /*
@@ -330,7 +327,6 @@ private:
   void JMP() noexcept; // Pula PC para um endereço de memória 
   void POP() noexcept; // Desempilha elemento da stack 
   void PSH() noexcept; // Empilha elemento na stack
-  void PRT() noexcept; // Imprimi caracteres na tela até encontrar um caractere nulo('\n'). OBS : Essa instrução é temporária
   void BRK() noexcept; // Interrompe execução do programa
   void INC() noexcept; // Incrementa 1 a um registrador
   void DEC() noexcept; // Decrementa 1 a um registrador

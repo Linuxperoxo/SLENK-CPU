@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : memory.hpp                    |
- *    |  SRC MOD   : 02/11/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -55,20 +55,47 @@
 
 #include <cstdint>
 
-#define ROM_INIT      0x8000
-#define ROM_END       0xFFFF
-#define FIRMWARE_INIT 0x0000
-
 /*
  *
- * Decidi que vou implementar a possibilidade de colocar firmware custom, esse projeto é educativo então quero
- * que outras pessoas use ele para aprender também
- *
- * Por enquanto deixarei comentado 
+ * Faixa de endereço que cada chip de memória responde
  *
  */
 
-//#define USE_CUSTOM_FIRMWARE // Descomente caso queira usar o firmware custom
+/*
+ *
+ * Firmware
+ *
+ */
+
+#define FIRMWARE_INIT 0x00
+#define FIRMWARE_END  0xFF
+
+/*
+ *
+ * Rom do programa
+ *
+ */
+
+#define PROGRAM_ROM_INIT 0x8000
+#define PROGRAM_ROM_END  0xFFFF
+
+/*
+ *
+ * Para dispositivos I/O
+ *
+ */
+
+#define IO_MEMORY_INIT 0x7000
+#define IO_MEMORY_END  0x7FFF
+
+/*
+ *
+ * Para RAM
+ *
+ */
+
+#define RAM_MEMORY_INIT 0x100
+#define RAM_MEMORY_END  0x6FFF
 
 class BUS;
 
@@ -83,18 +110,12 @@ private:
 
 private:
 
+  uint8_t* _FIRMWARE_ROM;
+  uint8_t* _PROGRAM_ROM;
+  uint8_t* _IO_DEVICE;
   uint8_t* _RAM;
-  uint8_t* _ROM;
-
-  /*
-   *
-   * Vou usar essa variável apenas para escrever na ROM 1 vez, isso não acontece realmente
-   * mas só decidi usar isso para n~ao precisar usar uma arquivo separado como ROM
-   *
-   */
-
-  uint8_t  _WR;
-
+  
+  uint8_t _CE;
 public:
 
   explicit MEMORY() noexcept;
@@ -103,43 +124,31 @@ public:
 
 private:
 
-/*
- *
- * @info   : Essa função lê um dado em um bloco de memória
- *
- * @return : uint8_t 
- *
- * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
- *
- */
+  uint8_t addrs_decoder(uint16_t, uint8_t, uint8_t) noexcept;
 
-  inline uint8_t read(uint16_t _addrs_to_read) noexcept
-  { 
-    return _RAM[_addrs_to_read]; 
-  }
+  /*
+   *
+   * @info   : Essa função lê um dado em um bloco de memória
+   *
+   * @return : uint8_t 
+   *
+   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+   *
+   */
 
-/*
- *
- * @info   : Essa função escreve um dado em um bloco de memória
- *
- * @return : void
- *
- * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
- *
- */
+  inline uint8_t read(uint16_t _addrs_to_read) noexcept { return addrs_decoder(_addrs_to_read, 0, 0); }
 
-  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept
-  {
-    /*
-     *
-     * Como so vamos escrever na ROM apenas uma vez usamos esse _WR para poder fazer isso,
-     * porém nunca mais isso vai poder ser feito durante a execução do programa
-     *
-     */
-
-    if(_WR == 1 || _addrs_to_write < ROM_INIT)
-      _RAM[_addrs_to_write] = _data_to_write; 
-  }
+  /*
+   *
+   * @info   : Essa função escreve um dado em um bloco de memória
+   *
+   * @return : void
+   *
+   * @param  : Recebe um endereço que será escrito, e o dado a ser escrito
+   *
+   */
+  
+  inline void write(uint16_t _addrs_to_write, uint8_t _data_to_write) noexcept { addrs_decoder(_addrs_to_write, _data_to_write, 1); }
 
 public:
 
@@ -161,12 +170,11 @@ public:
    *
    * Com esse firmware nós vamos configurar nosso hardware para começar a executar nosso programa.
    *
-   * Essas funções vão servir para carregar nosso firmware
+   * Essa função vai servir para carregar nosso firmware
    *
    */
   
   void load_firmware() noexcept;
-  void load_firmware(const char*) noexcept;
 
   friend class BUS;
 };

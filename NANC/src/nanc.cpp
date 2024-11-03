@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 02/11/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |  VERSION   : 0.1-0                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -30,11 +30,17 @@
  *    CHANGE LOG 0.1-0:
  *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
  *      * Adicionado -> Instruções INC e DEC para incremento e decremento de registradores;
+ *      * Melhoria   -> Agora as instruções não são mais limitadas a 3 caracteres;
+ *      * Correção   -> Problema em formatação de hexadecimais;
+ *      * Correçao   -> Problemas com instruções que não precisam do '[]', agora voce pode usar por exemplo
+ *                      BRK; ao invés de BRK [], mas caso queira usar o '[]' pode usar sem problemas :D;
+ *      * Removido   -> Instrução PRT agora foi totalmente removida da arquitetura;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;
  *      * Usar estruturas de dados mais complexas, como hashtable;
  *      * Adicionar mais instruções ao compilador;
+ *      * Melhorar manipulações de erro;
  *
  */
 
@@ -81,9 +87,9 @@
 #define CANEBLY_EXTENSION "ceb" 
 #define BIN_FILE_DEST     "./anc.bin"
 
-#define OPTABLE_SIZE         0x15
+#define OPTABLE_SIZE         0x14
 #define REGTABLE_SIZE        0x04
-#define INSTRUCTIONS         0x0B
+#define INSTRUCTIONS         0x0A
 #define FUNCTIONS_DECODER    0x03
 
 /*
@@ -107,10 +113,9 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
 {
   "RST",  "JMP",  "POP",  "PSH",
   "MOV1", "MOV2", "MOV3", "MOV4",
-  "MOV5", "PRT",  "BRK",  "ADD1",
-  "ADD2", "ADD3", "ADD4", "SUB1",
-  "SUB2", "SUB3", "SUB4", "INC",
-  "DEC"
+  "MOV5", "BRK",  "ADD1", "ADD2", 
+  "ADD3", "ADD4", "SUB1", "SUB2", 
+  "SUB3", "SUB4", "INC",  "DEC"
 };
 
 static std::string _reg_names[REGTABLE_SIZE]
@@ -121,15 +126,15 @@ static std::string _reg_names[REGTABLE_SIZE]
 static std::string _source_possible_instructions_names[INSTRUCTIONS]
 {
   "RST", "JMP", "POP", "PSH",
-  "MOV", "PRT", "BRK", "ADD",
-  "SUB", "INC", "DEC"
+  "MOV", "BRK", "ADD", "SUB", 
+  "INC", "DEC"
 };
 
 static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
 {
-  &rst_instruction, &jmp_instruction,     &pop_instruction,    &psh_instruction,
-  &mov_instruction, &prt_instruction,     &brk_instruction,    &add_instruction, 
-  &sub_instruction, &inc_dec_instruction, &inc_dec_instruction 
+  &rst_instruction,     &jmp_instruction,    &pop_instruction,  &psh_instruction,
+  &mov_instruction,     &brk_instruction,    &add_instruction,  &sub_instruction, 
+  &inc_dec_instruction, &inc_dec_instruction 
 };
 
 void instruction_parsing(std::string* _instruction, const std::string* _arg1, const std::string* _arg2) noexcept
@@ -174,11 +179,11 @@ void convert_args(std::string* __restrict _arg, std::string* __restrict _token_b
     if(std::isalnum((*_arg)[0]))
     { decimal_in_string_bin((*_arg)[0] - '0', _token_bin); return; }
     
-    std::cerr << "Syntax Error -> " << "Undefined instruction -> " << '[' << *_arg << ']' << '\n'; exit(SYNTAX_ERROR);
+    std::cerr << "Syntax Error -> Undefined instruction -> " << '[' << *_arg << ']' << '\n'; exit(SYNTAX_ERROR);
   }
   
-  uint32_t _i    { 0 };
-  bool _is_addrs { false };
+  uint32_t _i        { 0 };
+  bool     _is_addrs { false };
 
   if((*_arg)[_i] == '*')
   { ++_i; _is_addrs = true; }
@@ -189,6 +194,8 @@ void convert_args(std::string* __restrict _arg, std::string* __restrict _token_b
     {
       _arg->erase(0, _is_addrs ? 3 : 2);
        
+      if(_arg->size() < 4) { std::cout << "Syntax Error -> hexa nums is Undefined -> 0x" << *_arg << " use this format -> \"0x0000\"\n"; exit(SYNTAX_ERROR); }
+
       /*
        *
        * Convertendo hexadecimal em decimal
@@ -297,27 +304,68 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
   {
     /*
      *
-     * Tenho que admitir que essa parte está bem confusa mas no futuro pretendo melhorar :D.
+     * Tenho que admitir que essa parte está bem confusa, mas no futuro pretendo melhorar :D.
      *
-     * Nessa parte estamos divindo o que é instrução e o que é argumento, onde se inicia o 1 e o 2 
-     * argumento e onde acaba, onde começa e termina uma instrução, também pretendo adicionar mais funções
+     * Nessa parte estamos divindo o que é instrução e o que são os argumetos, onde se inicia o 1 argumento onde acaba,
+     * onde inicia o 2 arumentos e onde acaba, onde começa e termina uma instrução, também pretendo adicionar mais funções
      * nessa parte >:)
      *
      */
 
     if(std::isalpha(_source_file[_i]) || _source_file[_i] == '*')
     {
+      
+      /*
+       *
+       * Esse primeiro if serve para pegarmos o registrador passado pela instrução
+       *
+       */
+
       if(_inside_key_arg1)
       {
         _current_instruction_arg1.push_back(_source_file[_i]);  
       } else if (_inside_key_arg2){
         _current_instruction_arg2.push_back(_source_file[_i]);
       } else {
-        _current_instruction.push_back(_source_file[_i]);
-        _current_instruction.push_back(_source_file[++_i]);  
-        _current_instruction.push_back(_source_file[++_i]);  
+        
+        /*
+         *
+         * Pegando a instrução
+         *
+         */
+
+        while(std::isalpha(_source_file[_i])) 
+        {
+          _current_instruction.push_back(_source_file[_i]); 
+          
+          /*
+           *
+           * Esse if serve para conseguir apenas o ';' para instruções que não tem recebem 
+           * como parâmetro
+           *
+           * EXEMPLO : 
+           *    BRK [];
+           *
+           * Em vez de ter que escrever 'BRK [];' posso simplesmente escrever : 
+           *
+           * EXEMPLO : 
+           *    BRK;
+           *
+           */
+
+          if(_source_file[_i + 1] == ';') { break; }
+          
+          ++_i;
+        }
       }
     } else if(std::isalnum(_source_file[_i])){
+      
+      /*
+       *
+       * Aqui pegamos argumentos com números
+       *
+       */
+
       if(_inside_key_arg1)
       {
         _current_instruction_arg1.push_back(_source_file[_i]);
@@ -339,7 +387,20 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
         _inside_key_arg1       = false;
       }
     } else if(_source_file[_i] == ';'){
+      
+      /*
+       *
+       * Aqui montamos o nosso token
+       *
+       */
+
       _tokens->push_back({_current_instruction, _current_instruction_arg1, _current_instruction_arg2, ""}); // Essa string vazia é so para evitar o warning na compilação
+
+      /*
+       *
+       * Fazendo a limpeza antes de continuar
+       *
+       */
 
       _current_instruction.clear();
       _current_instruction_arg1.clear();

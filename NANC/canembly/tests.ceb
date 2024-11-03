@@ -42,4 +42,3 @@ MOV [*0x7004] [A];
 
 BRK []; < Programa encerrado >
 
-

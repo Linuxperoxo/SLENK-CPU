@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : instructions_parsing.hpp      |
- *    |  SRC MOD   : 01/11/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -103,13 +103,6 @@ inline void mov_instruction(std::string* __restrict _instruction,
   { std::cerr << "Syntax Error -> " << *_instruction << " Invalid args -> " << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR); }
 }
 
-inline void prt_instruction(std::string* __restrict _instruction, 
-                            const std::string* __restrict _arg1, 
-                            const std::string* __restrict _arg2) noexcept
-{
-  instruction_with_empty_args(_instruction, _arg1, _arg2);
-}
-
 inline void brk_instruction(std::string* __restrict _instruction, 
                             const std::string* __restrict _arg1, 
                             const std::string* __restrict _arg2) noexcept
@@ -127,7 +120,7 @@ inline void add_instruction(std::string* __restrict _instruction,
   { *_instruction = "ADD2"; }
   else if(check_valid_reg(_arg1) == REG_NOT_FOUND && (*_arg1)[0] != '*' && check_valid_reg(_arg2) == REG_NOT_FOUND && (*_arg2)[0] != '*')
   { *_instruction = "ADD3"; }
-  else if(check_valid_reg(_arg1) != REG_NOT_FOUND && check_valid_reg(_arg1) != REG_NOT_FOUND)
+  else if(check_valid_reg(_arg1) != REG_NOT_FOUND && check_valid_reg(_arg2) != REG_NOT_FOUND)
   { *_instruction = "ADD4"; }
   else
   { std::cerr << "Syntax Error -> " << *_instruction << " Invalid args -> " << '[' << *_arg1 << ']' << ' ' << '[' << *_arg2 << ']' << '\n'; exit(SYNTAX_ERROR); }

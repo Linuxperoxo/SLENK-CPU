@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : memory.cpp                    |
- *    |  SRC MOD   : 29/10/2024                    |
+ *    |  SRC MOD   : 03/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -24,28 +24,87 @@
 
 #include "../include/memory/memory.hpp"
 
-constexpr uint16_t ROM_MAX_SIZE { ROM_END - ROM_INIT };
-constexpr uint32_t MEMORY_SIZE  { 1024 * 64 }; 
+#define FIRMWARE_ROM_SIZE 0xFF
+
+constexpr uint16_t PROGRAM_ROM_SIZE { 0xFFFF - 0x8000 };
+constexpr uint16_t RAM_MEMORY_SIZE  { 0x6FFF - 0x100 };
+constexpr uint16_t IO_MEMORY_SIZE   { 0x7FFF - 0x7000 };
 
 MEMORY::MEMORY() noexcept
-  : _RAM(nullptr),
-    _ROM(nullptr)
+  : _FIRMWARE_ROM(nullptr),
+    _PROGRAM_ROM(nullptr),
+    _IO_DEVICE(nullptr),
+    _RAM(nullptr),
+    _CE(1)
 {
-  _RAM = static_cast<uint8_t*>(mmap(nullptr, MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
-  _ROM = static_cast<uint8_t*>(_RAM + ROM_INIT);
-  _WR  = 1;
+  /*
+   *
+   * Cada memória essa dessa vai responder a uma determinada faixa de endereços, isso é definido pelo addrs decoder
+   *
+   */
 
-  if(_RAM == MAP_FAILED)
-  {
-    std::cout << "Error to alloc memory for class MEMORY\n";
-    exit(EXIT_FAILURE);
-  }
-  std::memset(_RAM, 0, MEMORY_SIZE); // Escrevendo 0 na memória alocada 
+  _FIRMWARE_ROM = static_cast<uint8_t*>(mmap(nullptr, FIRMWARE_ROM_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
+  _PROGRAM_ROM  = static_cast<uint8_t*>(mmap(nullptr, PROGRAM_ROM_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
+  _IO_DEVICE    = static_cast<uint8_t*>(mmap(nullptr, IO_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
+  _RAM          = static_cast<uint8_t*>(mmap(nullptr, RAM_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0));
+
+  if(_FIRMWARE_ROM == MAP_FAILED || _PROGRAM_ROM == MAP_FAILED || 
+     _IO_DEVICE == MAP_FAILED || _RAM == MAP_FAILED)
+  { std::cout << "Error to alloc memory in class MEMORY\n"; exit(EXIT_FAILURE); }
+
+  /*
+   *
+   * Inicializando todas a memórias com 0
+   *
+   */
+
+  std::memset(_FIRMWARE_ROM, 0, FIRMWARE_ROM_SIZE);
+  std::memset(_PROGRAM_ROM, 0, PROGRAM_ROM_SIZE);
+  std::memset(_IO_DEVICE, 0, IO_MEMORY_SIZE);
+  std::memset(_RAM, 0, RAM_MEMORY_SIZE);
+  
 }
 
 MEMORY::~MEMORY() noexcept
 {
-  munmap(_RAM, MEMORY_SIZE);
+  munmap(_FIRMWARE_ROM, FIRMWARE_ROM_SIZE);
+  munmap(_PROGRAM_ROM, PROGRAM_ROM_SIZE);
+  munmap(_IO_DEVICE, IO_MEMORY_SIZE);
+  munmap(_RAM, RAM_MEMORY_SIZE);
+}
+
+uint8_t MEMORY::addrs_decoder(uint16_t _addrs, uint8_t _data, uint8_t _op) noexcept
+{
+  switch(_op)
+  {
+    case 0:
+      if(_addrs >= FIRMWARE_INIT && _addrs <= FIRMWARE_END && _CE == 1)
+      { return _FIRMWARE_ROM[_addrs]; }
+      else if(_addrs >= FIRMWARE_INIT && _addrs <= FIRMWARE_END)
+      { _addrs += RAM_MEMORY_INIT; }
+      
+      if(_addrs >= RAM_MEMORY_INIT && _addrs <= RAM_MEMORY_END)
+      { return _RAM[_addrs - RAM_MEMORY_INIT]; }
+
+      if(_addrs >= IO_MEMORY_INIT && _addrs <= IO_MEMORY_END)
+      { return _IO_DEVICE[_addrs - IO_MEMORY_INIT]; }
+
+      if(_addrs >= PROGRAM_ROM_INIT && _addrs <= PROGRAM_ROM_END)
+      { _CE = 0; return _PROGRAM_ROM[_addrs - PROGRAM_ROM_INIT]; }
+    break;
+
+    case 1:
+      if(_addrs >= FIRMWARE_INIT && _addrs <= FIRMWARE_END)
+      { _addrs += RAM_MEMORY_INIT; }
+      
+      if(_addrs >= RAM_MEMORY_INIT && _addrs <= RAM_MEMORY_END)
+      { _RAM[_addrs - RAM_MEMORY_INIT] = _data; return 0; }
+      
+      if(_addrs >= IO_MEMORY_INIT && _addrs <= IO_MEMORY_END)
+      { _IO_DEVICE[_addrs - IO_MEMORY_INIT] = _data; return 0; }
+    break;
+  }
+  return 0;
 }
 
 void MEMORY::load_rom(const char* _rom_file) noexcept
@@ -67,7 +126,7 @@ void MEMORY::load_rom(const char* _rom_file) noexcept
    *
    */
 
-  struct stat* _rom_file_info { new struct stat()}; // Struct necessária para guardar informações do arquivo
+  struct stat* _rom_file_info { new struct stat() }; // Struct necessária para guardar informações do arquivo
 
   if(fstat(_file, _rom_file_info) == -1) // Pegando as informações e verificando se ocorreu algum problema
   {
@@ -82,9 +141,9 @@ void MEMORY::load_rom(const char* _rom_file) noexcept
    *
    */
 
-  if(_rom_file_info->st_size > ROM_MAX_SIZE)
+  if(_rom_file_info->st_size / 8 > PROGRAM_ROM_SIZE)
   {
-    std::cout << "ROM file -> " << _rom_file << " is very long he has " << _rom_file_info->st_size << "Bytes of size, he most have at most " << ROM_MAX_SIZE << '\n';
+    std::cout << "ROM file -> " << _rom_file << " is very long he has " << _rom_file_info->st_size << " Bytes of size, he most have at most " << PROGRAM_ROM_SIZE * 8 << '\n';
     exit(EXIT_FAILURE);
   }
 
@@ -95,7 +154,7 @@ void MEMORY::load_rom(const char* _rom_file) noexcept
    *
    */
 
-  uint32_t _rom_file_size { static_cast<uint32_t>(_rom_file_info->st_size) };
+  uint16_t _rom_file_size { static_cast<uint16_t>(_rom_file_info->st_size) };
 
   uint8_t* _ROM_BUFFER
   {
@@ -117,17 +176,23 @@ void MEMORY::load_rom(const char* _rom_file) noexcept
 
   /*
    *
-   * Já mapeamos o arquivo na memória então podemos fecha-ló
+   * Já pegamos a informação que eu queria, já podemos liberar essa memória
    *
    */
 
   delete _rom_file_info;
   
+  /*
+   *
+   * Já mapeamos o arquivo na memória então podemos fecha-ló
+   *
+   */
+
   close(_file);
 
-  uint16_t _bits { 0 }; // Vendo quantos bits nos copiamos
-  uint8_t _byte  { 0 }; // Aqui onde vamos mover cada "bit" do arquivo  
-  uint8_t _flip  { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
+  uint16_t _bits  { 0 }; // Vendo quantos bits nos copiamos
+  uint8_t  _byte  { 0 }; // Aqui onde vamos mover cada "bit" do arquivo  
+  uint8_t  _flip  { 0 }; // Quantas vezes vamos flipar o bit para a esquerda, isso serve para montar nosso byte
 
   for(; _bits < _rom_file_size; _bits++, _flip++) // Copiando 32 bytes do arquivo, mais pra frente vamos aumentar essa quantidade
   {
@@ -140,16 +205,9 @@ void MEMORY::load_rom(const char* _rom_file) noexcept
        *
        */
       
-      /*
-      std::cout << "---------------------\n";
-      std::cout << "ADDRS : 0x800" << (_bits / 8) - 1 << '\n';
-      std::cout << "DATA  : " << static_cast<int>(_byte) << '\n';
-      std::cout << "---------------------\n";
-      */
-
-      _ROM[(_bits / 8) - 1] = _byte;
-      _byte                 = 0;
-      _flip                 = 0;
+      _PROGRAM_ROM[_bits / 8 - 1] = _byte;
+      _byte                       = 0;
+      _flip                       = 0;
     }
     
     /*
@@ -198,25 +256,25 @@ void MEMORY::load_firmware() noexcept
    *
    * Configurando o registrador STKPTR para o início da stack que é 0xFF 
    *
-   * MOV STKPTR, 0xFF
+   * MOV [STK] [0xFF];
    *
    */
   
-  write(0x0000, 0x04); // MOV
-  write(0x0001, 0x04); // STKPTR
-  write(0x0002, 0xFF); // Valor a mover
+  _FIRMWARE_ROM[0x00] = 0x04; // MOV
+  _FIRMWARE_ROM[0x01] = 0x04; // STK
+  _FIRMWARE_ROM[0x02] = 0xFF; // Valor a mover
 
   /*
    *
    * Configurando o registrador PC para o início da ROM do programa
    *
-   * JMP 0x8000
+   * JMP [0x8000];
    *
    */ 
 
-  write(0x0003, 0x01); // JMP
-  write(0x0004, 0x80); // HIGH BYTE 
-  write(0x0005, 0x00); // LOWER BYTE
+  _FIRMWARE_ROM[0x03] = 0x01; // JMP
+  _FIRMWARE_ROM[0x04] = 0x80; // HIGH BYTE 
+  _FIRMWARE_ROM[0x05] = 0x00; // LOWER BYTE
 
   /*
    *
@@ -224,15 +282,5 @@ void MEMORY::load_firmware() noexcept
    * apenas usamos ele para escrever um firmware de maneira mais fácil
    *
    */
-
-  _WR = 0;
 }
 
-void MEMORY::load_firmware(const char* _firmware_file) noexcept
-{
-  /*
-   *
-   * Vou fazer ainda :^)
-   *
-   */ 
-}

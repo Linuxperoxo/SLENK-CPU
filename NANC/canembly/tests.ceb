@@ -1,44 +1,5 @@
-< 
-  
-  Arquivo destinado a testar funcionalidades novas do NANC 
-  
->
-
-< Convertendo o valor do registrador X para string >
-
-MOV [X] [4];
+MOV [X] [*0x7000];
+MOV [X] [*0x7000];
+MOV [X] [*0x7000];
 ADD [X];
-ADD [48];
-
-< Mandando o valor convertido para o display >
-MOV [*0x7000] [A];
-
-< Limpando o registrador A >
-
-MOV [A] [0];
-
-< Fazendo a mesma coisa que eu fiz lá em cima >
-
-MOV [Y] [4];
-ADD [Y];
-ADD [48];
-
-MOV [*0x7002] [A];
-
-< Movendo os sinais '+' e '=' >
-
-MOV [*0x7001] [43];
-MOV [*0x7003] [61];
-
-< Limpando o registrador novamente >
-
-MOV [A] [0];
-
-< Por fim somando os 2 resultados e mandando para o display >
-
-ADD [X] [Y];
-ADD [48];
-MOV [*0x7004] [A];
-
-BRK []; < Programa encerrado >
-
+PSH;

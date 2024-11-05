@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 03/11/2024                    |
+ *    |  SRC MOD   : 05/11/2024                    |
  *    |  VERSION   : 0.1-0                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -30,6 +30,8 @@
  *    CHANGE LOG 0.1-0:
  *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
  *      * Adicionado -> Instruções INC e DEC para incremento e decremento de registradores;
+ *      * Melhoria   -> Função lexer totalmente refeita;
+ *      * Melhoria   -> Algumas otimizações no código em geral;
  *      * Melhoria   -> Agora as instruções não são mais limitadas a 3 caracteres;
  *      * Correção   -> Problema em formatação de hexadecimais;
  *      * Correçao   -> Problemas com instruções que não precisam do '[]', agora voce pode usar por exemplo
@@ -40,7 +42,7 @@
  *      * Aplicar diversas otimizações e melhorias no código;
  *      * Usar estruturas de dados mais complexas, como hashtable;
  *      * Adicionar mais instruções ao compilador;
- *      * Melhorar manipulações de erro;
+ *      * Melhorar manipulações de erro com throw;
  *
  */
 
@@ -84,11 +86,10 @@
 #include "../include/instructions_parsing.hpp"
 
 #define SOURCE_FILE       argv[1]
-#define CANEBLY_EXTENSION "ceb" 
 #define BIN_FILE_DEST     "./anc.bin"
 
 #define OPTABLE_SIZE         0x14
-#define REGTABLE_SIZE        0x04
+#define REGTABLE_SIZE        0x05
 #define INSTRUCTIONS         0x0A
 #define FUNCTIONS_DECODER    0x03
 
@@ -120,7 +121,7 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
 
 static std::string _reg_names[REGTABLE_SIZE]
 {
-  "A", "X", "Y", "S"  
+  "A", "X", "Y", "S", "STK"  
 };
 
 static std::string _source_possible_instructions_names[INSTRUCTIONS]
@@ -163,7 +164,7 @@ void convert_instruction(const std::string* __restrict _instruction, std::string
 void convert_args(std::string* __restrict _arg, std::string* __restrict _token_bin) noexcept
 {
   /*
-   *
+/   *
    * Essa função vai ser melhorada no futuro, está sendo apenas para testes
    *
    */
@@ -268,8 +269,9 @@ struct Token
   }
 };
 
-void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint32_t _source_file_size) noexcept
+void lexer(const std::string* _source_file, std::vector<Token>* _tokens) noexcept
 {
+
   /*
    *
    * Aqui fica o nosso lexer, é aqui onde o código é organizado.
@@ -295,16 +297,15 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
   std::string _current_instruction_arg1;
   std::string _current_instruction_arg2;
 
-  bool _inside_key_arg1       { false };
+  uint64_t _instruction_index { 0 };
+
   bool _inside_key_arg1_close { false };
-  bool _inside_key_arg2       { false };  
   bool _inside_key_arg2_close { false };
 
-  for(uint32_t _i { 0 }; _i < _source_file_size; _i++)
+  for(uint32_t _i { 0 }; _i < _source_file->size(); _i++)
   {
+
     /*
-     *
-     * Tenho que admitir que essa parte está bem confusa, mas no futuro pretendo melhorar :D.
      *
      * Nessa parte estamos divindo o que é instrução e o que são os argumetos, onde se inicia o 1 argumento onde acaba,
      * onde inicia o 2 arumentos e onde acaba, onde começa e termina uma instrução, também pretendo adicionar mais funções
@@ -312,102 +313,85 @@ void lexer(const uint8_t* _source_file, std::vector<Token>* _tokens, const uint3
      *
      */
 
-    if(std::isalpha(_source_file[_i]) || _source_file[_i] == '*')
+    if(std::isalpha((*_source_file)[_i]))
     {
-      
-      /*
-       *
-       * Esse primeiro if serve para pegarmos o registrador passado pela instrução
-       *
-       */
-
-      if(_inside_key_arg1)
+      while(std::isalpha((*_source_file)[_i])) 
       {
-        _current_instruction_arg1.push_back(_source_file[_i]);  
-      } else if (_inside_key_arg2){
-        _current_instruction_arg2.push_back(_source_file[_i]);
-      } else {
-        
+        _current_instruction.push_back((*_source_file)[_i++]);
+      }
+
+      define_arg:
+      
+      if((*_source_file)[_i] == '[')
+      {
+
         /*
          *
-         * Pegando a instrução
+         * Selecionando Argumento
+         *
+         * Esse é o poder dos ponteiros >:D
          *
          */
 
-        while(std::isalpha(_source_file[_i])) 
-        {
-          _current_instruction.push_back(_source_file[_i]); 
-          
-          /*
-           *
-           * Esse if serve para conseguir apenas o ';' para instruções que não tem recebem 
-           * como parâmetro
-           *
-           * EXEMPLO : 
-           *    BRK [];
-           *
-           * Em vez de ter que escrever 'BRK [];' posso simplesmente escrever : 
-           *
-           * EXEMPLO : 
-           *    BRK;
-           *
-           */
+        std::string* _arg_selector       { !_inside_key_arg1_close ? &_current_instruction_arg1 : &_current_instruction_arg2 };
+        bool*        _arg_close_selector { !_inside_key_arg1_close ? &_inside_key_arg1_close : &_inside_key_arg2_close };
+        
+        /*
+         *
+         * Pulando o '['
+         *
+         */
 
-          if(_source_file[_i + 1] == ';') { break; }
-          
+        ++_i;
+
+        while((*_source_file)[_i] != ']')
+        {
+          _arg_selector->push_back((*_source_file)[_i]);
           ++_i;
         }
-      }
-    } else if(std::isalnum(_source_file[_i])){
-      
-      /*
-       *
-       * Aqui pegamos argumentos com números
-       *
-       */
 
-      if(_inside_key_arg1)
+        /*
+         *
+         * Pulando o caractere ']'
+         *
+         */
+
+        ++_i;
+
+        /*
+         *
+         * Fechando o argumnto
+         *
+         */
+        
+        *_arg_close_selector = true;
+        
+        /*
+         * 
+         * Coloquei esse goto que não é muito recomendado usar porém aqui vai funcionar muito bem
+         *
+         * Ele vai ser muito útil caso eu queira adicionar mais parâmetros para as instruções
+         *
+         */
+        
+        goto define_arg;
+      }
+
+      if((*_source_file)[_i] == ';')
       {
-        _current_instruction_arg1.push_back(_source_file[_i]);
-      } else if(_inside_key_arg2){
-        _current_instruction_arg2.push_back(_source_file[_i]);
-      }
-    } else if(_source_file[_i] == '['){
-      if(_inside_key_arg1_close){
-        _inside_key_arg2 = true;
+        _tokens->push_back({_current_instruction, _current_instruction_arg1, _current_instruction_arg2, ""}); 
+        
+        _inside_key_arg1_close = false;
+         _inside_key_arg2_close = false;
+
+        _current_instruction.clear();
+        _current_instruction_arg1.clear();
+        _current_instruction_arg2.clear(); 
+
+        ++_instruction_index;
       } else {
-        _inside_key_arg1 = true;
+        std::cout << "Syntax Error -> operator ';' not found! -> line " << _instruction_index << '\n'; exit(SYNTAX_ERROR);
       }
-    } else if(_source_file[_i]  == ']'){
-      if(_inside_key_arg1_close){
-        _inside_key_arg2_close = true;
-        _inside_key_arg2       = false;
-      } else {
-        _inside_key_arg1_close = true;
-        _inside_key_arg1       = false;
-      }
-    } else if(_source_file[_i] == ';'){
-      
-      /*
-       *
-       * Aqui montamos o nosso token
-       *
-       */
-
-      _tokens->push_back({_current_instruction, _current_instruction_arg1, _current_instruction_arg2, ""}); // Essa string vazia é so para evitar o warning na compilação
-
-      /*
-       *
-       * Fazendo a limpeza antes de continuar
-       *
-       */
-
-      _current_instruction.clear();
-      _current_instruction_arg1.clear();
-      _current_instruction_arg2.clear();
-
-      _inside_key_arg1_close = false;
-      _inside_key_arg2_close = false;
     }
   }
 }
@@ -475,12 +459,12 @@ int main (int argc, char** argv) noexcept
    *
    * Mapeando arquivo na memória para facilitar a manipulação de leitura
    *
-   * O _file_mmap_dest é o arquivo já sem os espaços e quebra de linhas
+   * O _file_pure é o arquivo já sem os espaços e quebra de linhas
    *
    */
 
-  uint8_t* _file_mmap      { static_cast<uint8_t*>(mmap(nullptr, _file_infos.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, _file, 0)) };
-  uint8_t* _file_mmap_dest { static_cast<uint8_t*>(mmap(nullptr, _file_infos.st_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0)) };
+  uint8_t*     _file_mmap             { static_cast<uint8_t*>(mmap(nullptr, _file_infos.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, _file, 0)) };
+  std::string* _file_without_segments { nullptr };
 
   /*
    *
@@ -504,7 +488,7 @@ int main (int argc, char** argv) noexcept
    *
    */
 
-  remove_source_segments(_file_mmap, _file_mmap_dest, _file_infos.st_size); 
+  remove_source_segments(_file_mmap, _file_infos.st_size, _file_without_segments);
 
   /*
    *
@@ -520,7 +504,7 @@ int main (int argc, char** argv) noexcept
    *
    */
 
-  lexer(_file_mmap_dest, &_tokens, _file_infos.st_size);
+  lexer(_file_without_segments, &_tokens);
 
   for(uint64_t _i { 0 }; _i < _tokens.size(); _i++)
   {
@@ -575,7 +559,7 @@ int main (int argc, char** argv) noexcept
     }
   }
 
-  munmap(_file_mmap_dest, _file_infos.st_size);
+  delete _file_without_segments;
 
   return 0;
 }

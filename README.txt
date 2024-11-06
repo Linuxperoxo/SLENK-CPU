@@ -5,7 +5,7 @@
 | Este projeto foi criado com o intuito de estudo e compreensão dos princípios de funcionamento    |
 | de um processador. O objetivo é simular e entender suas operações e seu funcionamento. Contudo,  |
 | decidi que iria expandir esse projeto, decidi então, fazer um compilador exclusivo para a        |
-| arquitetura ANC, que fiz do zero. O NANC vai ser o compilador para a linguagem que estou fazendo |
+| arquitetura ANC, que fiz do zero. O NANC vai ser o assembler para a linguagem que estou fazendo  |
 | para somente para essa arquitetura, o "Canembly Lang". Canembly Lang é nossa linguagem assembly  |
 | para arquitetura ANC, a ideia que eu tive para ter um melhor controle sobre o arquivo binário é  |
 | simplesmente escrever 0 e 1 nele, como um arquivo de texto, mais pra frente irei remover isso e  | 

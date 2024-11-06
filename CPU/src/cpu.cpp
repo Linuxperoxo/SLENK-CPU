@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 03/11/2024                    |
+ *    |  SRC MOD   : 05/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -325,7 +325,7 @@ void CPU::SUB4() noexcept
 
 void CPU::JMP() noexcept
 {
-  uint16_t _buffer; 
+  uint16_t _buffer { 0 }; 
   
   _buffer  = (_buffer | BYTE1()) << 8;
   _buffer |= BYTE2();
@@ -428,7 +428,7 @@ void CPU::MOV2() noexcept
 
 void CPU::MOV3() noexcept
 {
-  uint16_t _buffer;
+  uint16_t _buffer { 0 };
 
   _buffer  = (_buffer | BYTE2()) << 8;
   _buffer |= BYTE3();
@@ -440,7 +440,7 @@ void CPU::MOV3() noexcept
 
 void CPU::MOV4() noexcept
 {
-  uint16_t _buffer;
+  uint16_t _buffer { 0 };
 
   _buffer  = (_buffer | BYTE1()) << 8;
   _buffer |= BYTE2();
@@ -452,7 +452,7 @@ void CPU::MOV4() noexcept
 
 void CPU::MOV5() noexcept
 {
-  uint16_t _buffer;
+  uint16_t _buffer { 0 };
 
   _buffer  = (_buffer | BYTE1()) << 8; 
   _buffer |= BYTE2();
@@ -461,3 +461,33 @@ void CPU::MOV5() noexcept
 
   _PC += 4;
 }
+
+void CPU::JFZ() noexcept
+{
+  if(_Z == 1)
+  {
+    JMP();
+    return;
+  }
+  _PC += 3;
+}
+
+void CPU::CMP() noexcept
+{
+  
+  /*
+   *
+   * Aqui é uma pequena lógica para comparar os valores dos registradores 
+   *
+   */
+
+  if((*register_decoder(BYTE1()) - *register_decoder(BYTE2()) == 0))
+  { _Z = 1; _N = 0; }
+  else if((*register_decoder(BYTE1()) - *register_decoder(BYTE2()) > 0))
+  { _Z = 0; _N = 0; }
+  else
+  { _Z = 0; _N = 1; }
+
+  _PC += 3;
+}
+

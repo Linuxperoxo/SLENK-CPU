@@ -30,13 +30,13 @@
  *    CHANGE LOG 0.1-0:
  *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
  *      * Adicionado -> Instruções INC e DEC para incremento e decremento de registradores;
+ *      * Adicionado -> Instruções CMP e JFZ para controle de fluxo do código
  *      * Melhoria   -> Função lexer totalmente refeita;
  *      * Melhoria   -> Algumas otimizações no código em geral;
  *      * Melhoria   -> Agora as instruções não são mais limitadas a 3 caracteres;
  *      * Correção   -> Problema em formatação de hexadecimais;
- *      * Correçao   -> Problemas com instruções que não precisam do '[]', agora voce pode usar por exemplo
- *                      BRK; ao invés de BRK [], mas caso queira usar o '[]' pode usar sem problemas :D;
- *      * Removido   -> Instrução PRT agora foi totalmente removida da arquitetura;
+ *      * Correçao   -> Problemas com instruções que não precisam do '[]', agora voce pode usar por exemplo BRK; ao invés de BRK [];, mas caso queira usar o '[]' pode usar sem problemas :D;
+ *      * Removido   -> Instrução PRT agora foi totalmente removida;
  *
  *    TO DOS 0.1-0:
  *      * Aplicar diversas otimizações e melhorias no código;
@@ -88,9 +88,9 @@
 #define SOURCE_FILE       argv[1]
 #define BIN_FILE_DEST     "./anc.bin"
 
-#define OPTABLE_SIZE         0x14
+#define OPTABLE_SIZE         0x16
 #define REGTABLE_SIZE        0x05
-#define INSTRUCTIONS         0x0A
+#define INSTRUCTIONS         0x0C
 #define FUNCTIONS_DECODER    0x03
 
 /*
@@ -116,7 +116,8 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
   "MOV1", "MOV2", "MOV3", "MOV4",
   "MOV5", "BRK",  "ADD1", "ADD2", 
   "ADD3", "ADD4", "SUB1", "SUB2", 
-  "SUB3", "SUB4", "INC",  "DEC"
+  "SUB3", "SUB4", "INC",  "DEC",
+  "CMP",  "JFZ"
 };
 
 static std::string _reg_names[REGTABLE_SIZE]
@@ -128,14 +129,14 @@ static std::string _source_possible_instructions_names[INSTRUCTIONS]
 {
   "RST", "JMP", "POP", "PSH",
   "MOV", "BRK", "ADD", "SUB", 
-  "INC", "DEC"
+  "INC", "DEC", "CMP", "JFZ"
 };
 
 static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
 {
-  &rst_instruction,     &jmp_instruction,    &pop_instruction,  &psh_instruction,
-  &mov_instruction,     &brk_instruction,    &add_instruction,  &sub_instruction, 
-  &inc_dec_instruction, &inc_dec_instruction 
+  &rst_instruction,     &jmp_instruction,     &pop_instruction,     &psh_instruction,
+  &mov_instruction,     &brk_instruction,     &add_instruction,     &sub_instruction, 
+  &inc_dec_instruction, &inc_dec_instruction, &cmp_dec_instruction, &jfz_dec_instruction 
 };
 
 void instruction_parsing(std::string* _instruction, const std::string* _arg1, const std::string* _arg2) noexcept

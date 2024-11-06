@@ -1,5 +1,34 @@
-MOV [X] [*0x7000];
-MOV [X] [*0x7000];
-MOV [X] [*0x7000];
+< Movendo um valor de teste >
+MOV [X] [2];
+MOV [Y] [3];
+
+< 
+
+  Comparando os 2 registradores, caso os 2 sejam iguais o JFZ irá dar o JMP
+  
+>
+
+CMP [X] [Y];
+JFZ [*0x8014];
+
+<
+
+  Se eles forem diferentes executa isso
+  
+>
+
+MOV [A] [53];
+MOV [*0x7000] [A];
+BRK;
+
+<
+
+  Se forem iguais executa isso
+  
+>
+
+MOV [A] [56];
 ADD [X];
-PSH;
+MOV [*0x7000] [A];
+BRK;
+

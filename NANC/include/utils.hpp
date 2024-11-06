@@ -42,7 +42,7 @@ inline void remove_source_segments(const uint8_t* __restrict _file, const uint32
 
   std::string* _buffer_without_segments { new std::string() };
 
-  for(uint32_t _i { 0 }; _i < _file_size; _i++)
+  for(uint64_t _i { 0 }; _i < _file_size; _i++)
   {
     if(_file[_i] == '<') 
     { 

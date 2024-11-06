@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 03/11/2024                    | 
+ *    |  SRC MOD   : 05/11/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -75,7 +75,7 @@
 #include <string>
 
 #define REGCODE_NUM 0x05
-#define OPCODE_NUM  0x14
+#define OPCODE_NUM  0x16
 #define BRK_OPCODE  0x0A
 
 /*
@@ -238,7 +238,8 @@ public:
       {"MOV", &CPU::MOV},  {"MOV", &CPU::MOV2}, {"MOV", &CPU::MOV3}, {"MOV", &CPU::MOV4},
       {"MOV", &CPU::MOV5}, {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  {"ADD", &CPU::ADD2}, 
       {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  {"SUB", &CPU::SUB2}, 
-      {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},  {"DEC", &CPU::DEC}
+      {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},  {"DEC", &CPU::DEC},
+      {"CMP", &CPU::CMP},  {"JFZ", &CPU::JFZ}
     }; 
     
     /*
@@ -330,6 +331,8 @@ private:
   void BRK() noexcept; // Interrompe execução do programa
   void INC() noexcept; // Incrementa 1 a um registrador
   void DEC() noexcept; // Decrementa 1 a um registrador
+  void JFZ() noexcept; // Dá jump caso o resultado da operação seja zero
+  void CMP() noexcept; // Compara 2 registradores se é < > != ou ==
 
   /*
    *
@@ -353,7 +356,6 @@ private:
    */
 
   void MOV() noexcept; void MOV2() noexcept; void MOV3() noexcept; void MOV4() noexcept; void MOV5() noexcept;
-
 
   /*
    *

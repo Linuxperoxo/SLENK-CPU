@@ -16,14 +16,14 @@
 
 /*
  *
- * Canembly Lang Compiler :)
+ * Canembly Lang assembler :)
  *
  */
 
 
 /*
- * Para essa primeira versão a otimização não vai ser o nosso foco, pretendo deixar nosso compilador
- * funcional antes de qualquer coisa otimização, seja em estruturas de dados ou algoritmos.
+ * Para essa primeira versão a otimização não vai ser o nosso foco, pretendo deixar nosso assembler
+ * funcional antes de qualquer otimização, seja em estruturas de dados ou algoritmos.
  *
  * OTIMIZAÇÂO PRÉMATURA É A RAIZ DE TODO MAL!
  *
@@ -48,15 +48,17 @@
 
 /*
  *
- * Esse será nosso compilador, com eles vamos conseguir escrever código de forma mais humana.
+ * Esse será nosso assembler, com eles vamos conseguir escrever código de forma mais humana.
  *
- * Fazer um pequeno compilador foi uma ideia desde sempre, programar em binário é extremamente legal
+ * Fazer um pequeno assembler foi uma ideia desde sempre, programar em binário é extremamente legal
  * porém é muito fácil errar algum 0 ou 1 e perder o programa por completo.
  *
- * Fazer um compilador é um projeto extremamente gratificante, porém possue várias dificuldades, mas a ideia
+ * Fazer um assembler é um projeto extremamente gratificante, porém possue várias dificuldades, mas a ideia
  * desse projeto é realmente me desafiar e explorar os funcionamentos de cada coisa.
  *
- * O compilador é a parte mais importante de qualquer linguagem, ele vai dividir o código em 3 partes:
+ * O assembler é o montador, ou seja, ele vai traduzir o nosso código para binário.
+ *
+ * Ele vai ter 3 etapas: 
  *
  * - Lexer      : Nessa parte o código vai ser convertido em tokens. Tokens são as menores unidades significativas 
  *                de um programa (como palavras-chave, identificadores, números, operadores, etc.).
@@ -66,7 +68,7 @@
  *
  * - Tradução : A maioria dos compiladores traduzem os tokens em assembly, por isso conseguimos usar -O3, -O2 em compiladores
  *              como o GCC e o LLVM, a ideia é reduzir o tamanho do código assembly, e depois de gerar todo o código assembly
- *              vamos traduzir esse código para instrução de máquina.
+ *              vamos usar o assembler para traduzir esse código para instrução de máquina.
  *
  */
 

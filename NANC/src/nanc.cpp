@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 05/11/2024                    |
+ *    |  SRC MOD   : 09/11/2024                    |
  *    |  VERSION   : 0.1-0                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -91,9 +91,9 @@
 #define SOURCE_FILE       argv[1]
 #define BIN_FILE_DEST     "./anc.bin"
 
-#define OPTABLE_SIZE         0x16
+#define OPTABLE_SIZE         0x17
 #define REGTABLE_SIZE        0x05
-#define INSTRUCTIONS         0x0C
+#define INSTRUCTIONS         0x0D
 #define FUNCTIONS_DECODER    0x03
 
 /*
@@ -120,26 +120,28 @@ static std::string _cpu_possible_instructions_names[OPTABLE_SIZE]
   "MOV5", "BRK",  "ADD1", "ADD2", 
   "ADD3", "ADD4", "SUB1", "SUB2", 
   "SUB3", "SUB4", "INC",  "DEC",
-  "CMP",  "JFZ"
+  "CMP",  "JFZ",  "JFNZ"
 };
 
 static std::string _reg_names[REGTABLE_SIZE]
 {
-  "A", "X", "Y", "S", "STK"  
+  "A", "X", "Y", "S", "STK" 
 };
 
 static std::string _source_possible_instructions_names[INSTRUCTIONS]
 {
   "RST", "JMP", "POP", "PSH",
   "MOV", "BRK", "ADD", "SUB", 
-  "INC", "DEC", "CMP", "JFZ"
+  "INC", "DEC", "CMP", "JFZ",
+  "JFNZ"
 };
 
 static void (*_instructions_functions_decoder[INSTRUCTIONS])(std::string* __restrict, const std::string* __restrict, const std::string* __restrict)
 {
   &rst_instruction,     &jmp_instruction,     &pop_instruction,     &psh_instruction,
   &mov_instruction,     &brk_instruction,     &add_instruction,     &sub_instruction, 
-  &inc_dec_instruction, &inc_dec_instruction, &cmp_dec_instruction, &jfz_dec_instruction 
+  &inc_dec_instruction, &inc_dec_instruction, &cmp_dec_instruction, &jfz_dec_instruction,
+  &jfnz_dec_instruction
 };
 
 void instruction_parsing(std::string* _instruction, const std::string* _arg1, const std::string* _arg2) noexcept

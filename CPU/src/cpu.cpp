@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.cpp                       |
- *    |  SRC MOD   : 05/11/2024                    |
+ *    |  SRC MOD   : 09/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -472,6 +472,16 @@ void CPU::JFZ() noexcept
   _PC += 3;
 }
 
+void CPU::JFNZ() noexcept
+{
+  if(_Z == 0)
+  {
+    JMP();
+    return;
+  }
+  _PC += 3;
+}
+
 void CPU::CMP() noexcept
 {
   
@@ -490,4 +500,5 @@ void CPU::CMP() noexcept
 
   _PC += 3;
 }
+
 

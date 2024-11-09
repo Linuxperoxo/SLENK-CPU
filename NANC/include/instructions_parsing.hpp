@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : instructions_parsing.hpp      |
- *    |  SRC MOD   : 05/11/2024                    |
+ *    |  SRC MOD   : 09/11/2024                    |
  *    |                                            |
  *    O--------------------------------------------/
  *
@@ -168,6 +168,17 @@ inline void cmp_dec_instruction(std::string *__restrict _instruction,
 }
 
 inline void jfz_dec_instruction(std::string *__restrict _instruction, 
+                            const std::string *__restrict _arg1, 
+                            const std::string *__restrict _arg2) noexcept
+{
+  if((*_arg1)[0] == '*' && _arg2->empty()) 
+  { return; }   
+  
+  SYNTAX_ERROR_MSG; 
+  exit(SYNTAX_ERROR);
+}
+
+inline void jfnz_dec_instruction(std::string *__restrict _instruction, 
                             const std::string *__restrict _arg1, 
                             const std::string *__restrict _arg2) noexcept
 {

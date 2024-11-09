@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : cpu.hpp                       |
- *    |  SRC MOD   : 05/11/2024                    | 
+ *    |  SRC MOD   : 09/11/2024                    | 
  *    |                                            |
  *    O--------------------------------------------/
  *    
@@ -75,7 +75,7 @@
 #include <string>
 
 #define REGCODE_NUM 0x05
-#define OPCODE_NUM  0x16
+#define OPCODE_NUM  0x17
 #define BRK_OPCODE  0x0A
 
 /*
@@ -239,7 +239,7 @@ public:
       {"MOV", &CPU::MOV5}, {"BRK", &CPU::BRK},  {"ADD", &CPU::ADD},  {"ADD", &CPU::ADD2}, 
       {"ADD", &CPU::ADD3}, {"ADD", &CPU::ADD4}, {"SUB", &CPU::SUB},  {"SUB", &CPU::SUB2}, 
       {"SUB", &CPU::SUB3}, {"SUB", &CPU::SUB4}, {"INC", &CPU::INC},  {"DEC", &CPU::DEC},
-      {"CMP", &CPU::CMP},  {"JFZ", &CPU::JFZ}
+      {"CMP", &CPU::CMP},  {"JFZ", &CPU::JFZ},  {"JFNZ", &CPU::JFNZ}
     }; 
     
     /*
@@ -315,12 +315,29 @@ private:
   void RST() noexcept; // Reseta o processador, modificando o PC e STKPTR
   
   /*
+   *
+   * Instrução de adição, qualquer resultado será armazenado no accumulator reg('A')
+   *
+   * ADD  : Soma um valor bruto com o registrador A: 
+   *        EXEMPLO : A + 7;
+   *
+   * ADD2 : Soma um registrador com um valor bruto:
+   *        EXEMPLO : X + 7;
+   *
+   * ADD3 : Soma 2 valores brutos:
+   *        EXEMPLO : 7 + 8;
+   *
+   * ADD4 : Soma 2 registradores:
+   *        EXEMPLO : X + Y;
+   *
    */
 
   void ADD() noexcept; void ADD2() noexcept; void ADD3() noexcept; void ADD4() noexcept;
 
-
   /*
+   *
+   * Usa o mesmo padrão da instrução reg só que para subtração
+   *
    */
 
   void SUB() noexcept; void SUB2() noexcept; void SUB3() noexcept; void SUB4() noexcept;
@@ -332,6 +349,7 @@ private:
   void INC() noexcept; // Incrementa 1 a um registrador
   void DEC() noexcept; // Decrementa 1 a um registrador
   void JFZ() noexcept; // Dá jump caso o resultado da operação seja zero
+  void JFNZ() noexcept; // Dá jump caso o resultado da operação não seja zero
   void CMP() noexcept; // Compara 2 registradores se é < > != ou ==
 
   /*

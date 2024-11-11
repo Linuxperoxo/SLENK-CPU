@@ -6,7 +6,7 @@
  *    |  COPYRIGHT : (c) 2024 per Linuxperoxo.     |
  *    |  AUTHOR    : Linuxperoxo                   |
  *    |  FILE      : nanc.cpp                      |
- *    |  SRC MOD   : 09/11/2024                    |
+ *    |  SRC MOD   : 10/11/2024                    |
  *    |  VERSION   : 0.1-0                         |
  *    |                                            |
  *    O--------------------------------------------/
@@ -30,7 +30,9 @@
  *    CHANGE LOG 0.1-0:
  *      * Adicionado -> Suporte a comentários no código usando os operadores < Isso é um comentário >;
  *      * Adicionado -> Instruções INC e DEC para incremento e decremento de registradores;
- *      * Adicionado -> Instruções CMP e JFZ para controle de fluxo do código
+ *      * Adicionado -> Instruções CMP e JFZ para controle de fluxo do código;
+ *      * Melhoria   -> Agora usamos '%' para indicar que números hexadecimais;
+ *      * Melhoria   -> Ajustes no lexer dos hexadecimais;
  *      * Melhoria   -> Função lexer totalmente refeita;
  *      * Melhoria   -> Algumas otimizações no código em geral;
  *      * Melhoria   -> Agora as instruções não são mais limitadas a 3 caracteres;
@@ -195,37 +197,34 @@ void convert_args(std::string* __restrict _arg, std::string* __restrict _token_b
   if((*_arg)[_i] == '*')
   { ++_i; _is_addrs = true; }
 
-  if(std::isalnum((*_arg)[_i]))
+  if((*_arg)[_i] == '%')
   {
-    if((*_arg)[_i] == '0' && std::tolower((*_arg)[_i + 1]) == 'x')
-    {
-      _arg->erase(0, _is_addrs ? 3 : 2);
-       
-      if(_arg->size() < 4) { std::cout << "Syntax Error -> hexa nums is Undefined -> 0x" << *_arg << " use this format -> \"0x0000\"\n"; exit(SYNTAX_ERROR); }
+    _arg->erase(0, _is_addrs ? 2 : 1);
 
-      /*
-       *
-       * Convertendo hexadecimal em decimal
-       *
-       * Primeiro pegamos o high byte para converter e depois o lower byte
-       *
-       */
-       
-      decimal_in_string_bin(std::stoi(_arg->substr(0, 2), nullptr, 16), _token_bin);
-      decimal_in_string_bin(std::stoi(_arg->substr(2, 2), nullptr, 16), _token_bin);
-      
-      } else {
-      
-      _arg->erase(0, _is_addrs ? 1 : 0);
-       
-      /*
-       *
-       * Convertendo decimal string para decimal
-       *
-       */
-       
-      decimal_in_string_bin(std::stoi(*_arg), _token_bin);
-    }
+    if(_arg->size() < 4 || _arg->size() > 4) { std::cout << "Syntax Error -> hexa nums is Undefined -> use this format -> \"%0000\"\n"; exit(SYNTAX_ERROR); }
+
+    /*
+     *
+     * Convertendo hexadecimal em decimal
+     *
+     * Primeiro pegamos o high byte para converter e depois o lower byte
+     *
+     */
+     
+    decimal_in_string_bin(std::stoi(_arg->substr(0, 2), nullptr, 16), _token_bin);
+    decimal_in_string_bin(std::stoi(_arg->substr(2, 2), nullptr, 16), _token_bin);
+     
+  }
+  else if(std::isalnum((*_arg)[_i])){
+    _arg->erase(0, _is_addrs ? 1 : 0);
+    
+    /*
+     *
+     * Convertendo decimal string para decimal
+     *
+     */
+
+    decimal_in_string_bin(std::stoi(*_arg), _token_bin);
   }
 }
 

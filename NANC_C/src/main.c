@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include "../include/exception.h"
 
-int main(int _argc, char** _argv)
+int main(int __argc__, char** __argv__)
 {
   
   /*
@@ -17,8 +17,8 @@ int main(int _argc, char** _argv)
    *
    */
 
-  if(_argc < 2)
-    throw_exception(create_exception(_argv[0], "no input file", NULL));
+  if(__argc__ < 2)
+    throw_exception(create_exception(__argv__[0], "no input file", NULL));
 
   /*
    *
@@ -26,7 +26,7 @@ int main(int _argc, char** _argv)
    *
    */
 
-  int8_t _org_source_file = open(_argv[1], O_RDONLY);
+  int8_t __org_source_file = open(__argv__[1], O_RDONLY);
 
   /*
    *
@@ -34,8 +34,8 @@ int main(int _argc, char** _argv)
    *
    */
 
-  if(_org_source_file == -1)
-    throw_exception(create_exception(_argv[0], "file not found ->", _argv[1]));
+  if(__org_source_file == -1)
+    throw_exception(create_exception(__argv__[0], "file not found ->", __argv__[1]));
   
   /*
    *
@@ -43,8 +43,8 @@ int main(int _argc, char** _argv)
    *
    */
 
-  struct stat* _source_stat = (struct stat*)malloc(sizeof(struct stat));
-  fstat(_org_source_file, _source_stat);
+  struct stat* __source_stat = (struct stat*)malloc(sizeof(struct stat));
+  fstat(__org_source_file, __source_stat);
 
   /*
    *
@@ -52,12 +52,12 @@ int main(int _argc, char** _argv)
    *
    */
 
-  uint8_t* _source_file_map = (uint8_t*)mmap(NULL, _source_stat->st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, _org_source_file, 0);
+  uint8_t* __source_file_map = (uint8_t*)mmap(NULL, __source_stat->st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, __org_source_file, 0);
 
-  if(_source_file_map == MAP_FAILED)
-    throw_exception(create_exception(_argv[0], "failed to map file ->", _argv[1]));
+  if(__source_file_map == MAP_FAILED)
+    throw_exception(create_exception(__argv__[0], "failed to map file ->", __argv__[1]));
 
-  printf("%s", _source_file_map);
+  printf("%s", __source_file_map);
 
   return 0;
 }
